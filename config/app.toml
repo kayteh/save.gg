@@ -1,0 +1,12 @@
+[cache]
+backend = "bolt"
+
+	[cache.TTL]
+	comment = 86400
+	user = 3600
+	save = 86400
+	session = 604800
+
+[self]
+env = "local"
+
