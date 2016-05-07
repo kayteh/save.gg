@@ -6,32 +6,33 @@ import (
 	"github.com/segmentio/go-prompt"
 	"save.gg/sgg/cmd/sgg-tools/run"
 	m "save.gg/sgg/models"
+	"save.gg/sgg/util/errors"
 )
 
 func Login(ctx *cli.Context) {
 
-	username := ctx.String("username")
-	if username == "" {
-		username = prompt.StringRequired("username >")
+	handle := ctx.String("username")
+	if handle == "" {
+		handle = prompt.StringRequired("username/email")
 	}
 
-	slug := m.TransformUsernameToSlug(username)
-
-	password := prompt.PasswordMasked("password >")
+	password := prompt.PasswordMasked("password")
 
 	toolsrun.SetupDB()
 
-	u, err := m.UserBySlug(slug)
-	if err != nil {
-		log.WithError(err).Fatalln("get user failed")
+	u, err := m.UserAuth(handle, password)
+
+	if err == errors.UserAuthBadHandle || err == errors.UserAuthBadPassword {
+		log.WithError(err).Error("wrong credentials")
+		return
 	}
 
-	pass, err := u.TestSecret(password)
 	if err != nil {
-		log.WithError(err).Fatalln("get user failed")
+		log.WithError(err).Fatal("authentication problem")
+		return
 	}
 
-	log.WithField("passed?", pass).Info("output")
+	log.Printf("hello %s!", u.Username)
 
 	return
 

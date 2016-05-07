@@ -7,12 +7,14 @@ import (
 var (
 
 	// models/user
-	UserNotFound         = errors.New("user not found")
-	UserPresentableSave  = errors.New("attempted presentable user save")
-	UserNoIDSave         = errors.New("user id not set")
-	UsernameInvalid      = errors.New("username invalid")
-	UsernameTooLong      = errors.New("username too long")
-	UsernameDisallowed   = errors.New("username is not allowed")
-	UsernameTaken        = errors.New("username in use")
-	UserPasswordTooShort = errors.New("password is too short")
+	UserNotFound         = errors.New("sgg: user not found")
+	UserPresentableSave  = errors.New("sgg: attempted presentable user save")
+	UserNoIDSave         = errors.New("sgg: user id not set")
+	UsernameInvalid      = errors.New("sgg: username invalid")
+	UsernameTooLong      = errors.New("sgg: username too long")
+	UsernameDisallowed   = errors.New("sgg: username is not allowed")
+	UsernameTaken        = errors.New("sgg: username in use")
+	UserPasswordTooShort = errors.New("sgg: password is too short")
+	UserAuthBadHandle    = errors.New("sgg: bad username/email")
+	UserAuthBadPassword  = errors.New("sgg: bad password")
 )

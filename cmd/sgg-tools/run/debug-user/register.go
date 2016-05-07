@@ -3,8 +3,8 @@ package debuguser
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
+	"github.com/segmentio/go-prompt"
 	"save.gg/sgg/cmd/sgg-tools/run"
-	//a "save.gg/sgg/meta"
 	m "save.gg/sgg/models"
 )
 
@@ -16,6 +16,18 @@ func Register(ctx *cli.Context) {
 	password := ctx.String("password")
 	username := ctx.String("username")
 	admin := ctx.Bool("admin")
+
+	if username == "" {
+		username = prompt.StringRequired("Username")
+	}
+
+	if email == "" {
+		email = prompt.StringRequired("Email")
+	}
+
+	if password == "" {
+		password = prompt.PasswordMasked("Password")
+	}
 
 	// Create user
 	u := m.User{

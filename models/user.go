@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"database/sql"
 	"github.com/satori/go.uuid"
-	"github.com/tv42/slug"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
 	"save.gg/sgg/meta"
@@ -15,8 +14,23 @@ import (
 	"time"
 )
 
+const (
+	UserSubFree  = "free"
+	UserSubPro   = "pro"
+	UserSubElite = "elite"
+
+	UserACLAdmin      = "admin"
+	UserACLGlobalMod  = "glomod"
+	UserACLPartner    = "partner"
+	UserACLTester     = "tester"
+	UserACLContinuum  = "dev:c7m"
+	UserACLAtmosphere = "dev:atmos"
+	UserACLMomentum   = "dev:m6m"
+	UserACLSupernova  = "dev:nova"
+)
+
 var (
-	allowedCharacters = regexp.MustCompile(`\A[a-zA-Z0-9_\-](?:[a-zA-Z0-9_\-\ ]+[a-zA-Z0-9_\-])?\z`)
+	allowedCharacters = regexp.MustCompile(`\A[a-zA-Z0-9_\-](?:(?:[a-zA-Z0-9_\-\ ]+)?[a-zA-Z0-9_\-])?\z`)
 )
 
 type User struct {
@@ -64,7 +78,7 @@ func UserBySlug(slug string) (*User, error) {
 
 	err := db.Get(user, `
 	SELECT 
-		user_id, slug, username,
+		user_id, slug, username, email,
 		secret, acl, sub_level,
 		activated, created_at, updated_at,
 		old_secrets, known_ips
@@ -72,6 +86,31 @@ func UserBySlug(slug string) (*User, error) {
 	WHERE deleted_at IS NULL 
 		AND slug = $1 
 	LIMIT 1`, slug)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.UserNotFound
+	}
+
+	user.setACLPq()
+
+	return user, err
+
+}
+
+func UserByEmail(email string) (*User, error) {
+
+	user := &User{}
+
+	err := db.Get(user, `
+	SELECT 
+		user_id, slug, username, email,
+		secret, acl, sub_level,
+		activated, created_at, updated_at,
+		old_secrets, known_ips
+	FROM users 
+	WHERE deleted_at IS NULL 
+		AND email = $1 
+	LIMIT 1`, email)
 
 	if err == sql.ErrNoRows {
 		return nil, errors.UserNotFound
@@ -98,6 +137,30 @@ func (u *User) Presentable() *User {
 	return newUser
 }
 
+func UserAuth(handle, password string) (u *User, err error) {
+	if strings.Contains(handle, "@") {
+		u, err = UserByEmail(handle)
+	} else {
+		u, err = UserBySlug(TransformUsernameToSlug(handle))
+	}
+
+	if err == errors.UserNotFound {
+		return nil, errors.UserAuthBadHandle
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	pass, err := u.CheckSecret(password)
+
+	if !pass {
+		return nil, errors.UserAuthBadPassword
+	}
+
+	return u, nil
+}
+
 func (u *User) FetchSaves(f *FetchConfig) (s *[]Save, err error) {
 	//s, err = SavesByUser(u, f)
 
@@ -120,18 +183,18 @@ func (u *User) Save() (err error) {
 
 	_, err = db.NamedExec(`
 		UPDATE users SET
-			secret=:secret:,
-			slug=:slug:,
-			username=:username:,
-			email=:email:,
-			acl=:acl:,
-			sub_level=:sub_level:,
-			activated=:activated:,
-			updated_at=:updated_at:,
-			old_secrets=:old_secrets:,
-			known_ips=:known_ips:,
-			session_key=:session_key:
-		WHERE user_id=:user_id:
+			secret=:secret,
+			slug=:slug,
+			username=:username,
+			email=:email,
+			acl=:acl,
+			sub_level=:sub_level,
+			activated=:activated,
+			updated_at=:updated_at,
+			old_secrets=:old_secrets,
+			known_ips=:known_ips,
+			session_key=:session_key
+		WHERE user_id=:user_id
 	`, &u)
 
 	return err
@@ -149,15 +212,9 @@ func (u *User) Insert() (err error) {
 
 	_, err = db.NamedExec(`
 		INSERT INTO users ( 
-			user_id,  email, slug, 
-			secret, username, acl, 
-			sub_level, activated, 
-			created_at, updated_at
+			 user_id,  email,  slug,  secret,  username,  acl,  activated,  created_at,  updated_at
 		) VALUES (
-			:user_id:, :email:, :slug:, 
-			:secret:, :username:, :acl:, 
-			:sub_level:, :activated:, 
-			:created_at:, :updated_at: 
+			:user_id, :email, :slug, :secret, :username, :acl, :activated, :created_at, :updated_at
 		)`,
 		&u)
 
@@ -208,7 +265,7 @@ func (u *User) GetACL() []string {
 // }
 
 // Test a hashed secret/password for correctness.
-func (u *User) TestSecret(password string) (o bool, err error) {
+func (u *User) CheckSecret(password string) (o bool, err error) {
 	err = bcrypt.CompareHashAndPassword([]byte(u.Secret), []byte(password))
 
 	if err == bcrypt.ErrMismatchedHashAndPassword {
@@ -288,5 +345,8 @@ func validatePassword(password string) (err error) {
 }
 
 func TransformUsernameToSlug(username string) string {
-	return slug.Slug(username)
+	slug := strings.ToLower(username)
+	slug = strings.Replace(slug, " ", "-", -1)
+
+	return slug
 }
