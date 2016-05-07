@@ -2,7 +2,7 @@
 package main
 
 import (
-	"save.gg/sgg/cmd/sgg-dev/run"
+	"save.gg/sgg/cmd/sgg-api/run"
 	"save.gg/sgg/meta"
 )
 

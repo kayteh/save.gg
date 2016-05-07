@@ -17,4 +17,8 @@ var (
 	UserPasswordTooShort = errors.New("sgg: password is too short")
 	UserAuthBadHandle    = errors.New("sgg: bad username/email")
 	UserAuthBadPassword  = errors.New("sgg: bad password")
+
+	// models/session
+	SessionTokenInvalid = errors.New("sgg: token invalid")
+	SessionNotFound     = errors.New("sgg: session not found")
 )

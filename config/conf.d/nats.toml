@@ -1,0 +1,2 @@
+[nats]
+url = "tcp://localhost:4222"

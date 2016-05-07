@@ -66,6 +66,7 @@ func main() {
 					Action: debugUser.Login,
 					Flags: []cli.Flag{
 						cli.StringFlag{Name: "username, u"},
+						cli.BoolFlag{Name: "token, t"},
 					},
 				},
 			},

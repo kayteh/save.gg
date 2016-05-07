@@ -34,6 +34,22 @@ func Login(ctx *cli.Context) {
 
 	log.Printf("hello %s!", u.Username)
 
+	if ctx.Bool("token") {
+		s, err := u.CreateSession()
+		if err != nil {
+			log.WithError(err).Error("session creation failure")
+			return
+		}
+
+		t, err := s.Token()
+		if err != nil {
+			log.WithError(err).Error("token creation failure")
+			return
+		}
+
+		log.Infof("token: %s", t)
+	}
+
 	return
 
 }

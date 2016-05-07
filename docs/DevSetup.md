@@ -1,5 +1,17 @@
 # Development Setup
 
+## Required packages
+
+- docker 1.11.1
+
+- git
+
+- go 1.6
+
+- nvm (use node 5.10)
+
+- gulp-cli
+
 ## Setting the stage...
 
 ```bash
@@ -12,11 +24,17 @@ git clone git@github.com:kayteh/save.gg sgg
 # Setup a postgres container
 docker run -e POSTGRES_PASSWORD=19216801 -e POSTGRES_DB=sgg -e POSTGRES_USER=sgg -e POSTGRES_INITDB_ARGS="-A trust" --name sgg-dev-pg -p 5432:5432 -d postgres
 
+# Setup a NATS container
+docker run -d -p 4222:4222 -p 8222:8222 -p 6222:6222 --name sgg-dev-nats nats
+
 # Get govendor
 go get -u github.com/kardianos/govendor
 
 # Get dependencies and build
 govendor get ./...
+
+cd client
+npm i
 
 # Initial migration
 sgg-tools migrate

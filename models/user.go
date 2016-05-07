@@ -34,7 +34,7 @@ var (
 )
 
 type User struct {
-	ID         string   `db:"user_id",json:"id,omitempty"`
+	ID         string   `db:"user_id" json:"id,omitempty"`
 	Slug       string   `json:"slug"`
 	Username   string   `json:"username"`
 	Email      string   `json:"email,omitempty"`
@@ -47,7 +47,7 @@ type User struct {
 
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
-	DeletedAt time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
+	DeletedAt time.Time `json:"-" db:"deleted_at"`
 
 	OldSecrets []byte `json:"old_secrets,omitempty" db:"old_secrets"`
 
@@ -72,20 +72,12 @@ type UserKnownIPs []struct {
 	LastSeen time.Time
 }
 
+// Finds a user by their slug.
 func UserBySlug(slug string) (*User, error) {
 
 	user := &User{}
 
-	err := db.Get(user, `
-	SELECT 
-		user_id, slug, username, email,
-		secret, acl, sub_level,
-		activated, created_at, updated_at,
-		old_secrets, known_ips
-	FROM users 
-	WHERE deleted_at IS NULL 
-		AND slug = $1 
-	LIMIT 1`, slug)
+	err := userQuery(user, "slug", slug)
 
 	if err == sql.ErrNoRows {
 		return nil, errors.UserNotFound
@@ -97,20 +89,12 @@ func UserBySlug(slug string) (*User, error) {
 
 }
 
+// Find a user by their email.
 func UserByEmail(email string) (*User, error) {
 
 	user := &User{}
 
-	err := db.Get(user, `
-	SELECT 
-		user_id, slug, username, email,
-		secret, acl, sub_level,
-		activated, created_at, updated_at,
-		old_secrets, known_ips
-	FROM users 
-	WHERE deleted_at IS NULL 
-		AND email = $1 
-	LIMIT 1`, email)
+	err := userQuery(user, "email", email)
 
 	if err == sql.ErrNoRows {
 		return nil, errors.UserNotFound
@@ -122,6 +106,40 @@ func UserByEmail(email string) (*User, error) {
 
 }
 
+// Find a user by session key.
+func UserBySessionKey(key string) (*User, error) {
+
+	user := &User{}
+
+	err := userQuery(user, "session_key", key)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.UserNotFound
+	}
+
+	user.setACLPq()
+
+	return user, err
+
+}
+
+// Abstraction over various single-constraint queries for getting one user.
+func userQuery(userPtr *User, constraint, value string) error {
+	return db.Get(userPtr, `
+	SELECT 
+		user_id, slug, username, email,
+		secret, acl, sub_level,
+		activated, created_at, updated_at,
+		old_secrets, known_ips, session_key
+	FROM users 
+	WHERE deleted_at IS NULL 
+		AND `+constraint+` = $1 
+	LIMIT 1`, value)
+}
+
+// Strips secret or un-needed values out of public-facing, or presented, data.
+// The idea is that if you still need one of these fields, you would fill it after calling this.
+// The model pointer this returns is non-commitable.
 func (u *User) Presentable() *User {
 	newUser := new(User)
 	*newUser = *u
@@ -137,6 +155,7 @@ func (u *User) Presentable() *User {
 	return newUser
 }
 
+// Authenicates a user based on their username or email, and their password.
 func UserAuth(handle, password string) (u *User, err error) {
 	if strings.Contains(handle, "@") {
 		u, err = UserByEmail(handle)
@@ -159,12 +178,6 @@ func UserAuth(handle, password string) (u *User, err error) {
 	}
 
 	return u, nil
-}
-
-func (u *User) FetchSaves(f *FetchConfig) (s *[]Save, err error) {
-	//s, err = SavesByUser(u, f)
-
-	return s, err
 }
 
 // Saves a user to the truth store, then touches.
@@ -191,8 +204,6 @@ func (u *User) Save() (err error) {
 			sub_level=:sub_level,
 			activated=:activated,
 			updated_at=:updated_at,
-			old_secrets=:old_secrets,
-			known_ips=:known_ips,
 			session_key=:session_key
 		WHERE user_id=:user_id
 	`, &u)
@@ -203,24 +214,41 @@ func (u *User) Save() (err error) {
 // Inserts a user into the database.
 func (u *User) Insert() (err error) {
 	if u.ID == "" {
-		u.ID = uuid.NewV4().String()
+		u.ID = uuid.NewV1().String()
 	}
 
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
+	u.SessionKey = generateKey()
+	u.AppendACL("user")
 	u.ACL = u.getACLPq()
 
 	_, err = db.NamedExec(`
 		INSERT INTO users ( 
-			 user_id,  email,  slug,  secret,  username,  acl,  activated,  created_at,  updated_at
+			 user_id,  email,  slug,  secret,  username,  acl,  activated,  created_at,  updated_at,  session_key
 		) VALUES (
-			:user_id, :email, :slug, :secret, :username, :acl, :activated, :created_at, :updated_at
+			:user_id, :email, :slug, :secret, :username, :acl, :activated, :created_at, :updated_at, :session_key
 		)`,
 		&u)
 
 	return err
 }
 
+// Soft-deletes the user from the database.
+// This should trigger cleanup jobs before being fully removed.
+func (u *User) Delete() (err error) {
+	u.DeletedAt = time.Now()
+	_, err = db.NamedExec(`UPDATE users SET deleted_at=:deleted_at WHERE user_id = :user_id`, &u)
+	return err
+}
+
+// Hard-deletes a user from the database. This is uncoverable.
+func (u *User) Purge() (err error) {
+	_, err = db.Exec(`DELETE FROM users WHERE user_id = $1 LIMIT 1`, u.ID)
+	return err
+}
+
+// Gets the byte array from the human-readable ACL to store in postgres.
 func (u *User) getACLPq() []byte {
 	// if len(u.realACL) == 0 {
 	// 	return []byte("{}")
@@ -229,32 +257,35 @@ func (u *User) getACLPq() []byte {
 	return []byte(fmt.Sprintf("{%s}", strings.Join(u.RealACL, ",")))
 }
 
+// Sets the human-readable ACL from go-sql's byte array
 func (u *User) setACLPq() {
 	b := u.ACL
 
-	if len(b) == 0 {
+	if len(b) <= 2 {
 		return
 	}
 
 	p := bytes.Split(b[1:len(b)-1], []byte(","))
 
-	po := make([]string, len(p))
-
 	for _, r := range p {
-		po = append(po, string(r))
+		if len(r) == 0 {
+			continue
+		} else {
+			u.RealACL = append(u.RealACL, string(r))
+		}
 	}
-
-	u.RealACL = po
 
 	return
 }
 
+// Appends a new ACL to the list
 func (u *User) AppendACL(role string) {
 	u.RealACL = append(u.RealACL, role)
 
 	return
 }
 
+// Gets the real ACL values
 func (u *User) GetACL() []string {
 	return u.RealACL
 }
@@ -263,6 +294,25 @@ func (u *User) GetACL() []string {
 // 	r := []byte(role)
 
 // }
+
+func (u *User) CreateSession() (s *Session, err error) {
+	s, err = NewSession(u.SessionKey)
+	if err != nil {
+		return nil, err
+	}
+
+	meta.App.Log.WithField("session", s).Info("session")
+
+	if s.SessionKey != u.SessionKey {
+		u.SessionKey = s.SessionKey
+		err = u.Save()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return s, nil
+}
 
 // Test a hashed secret/password for correctness.
 func (u *User) CheckSecret(password string) (o bool, err error) {
@@ -344,6 +394,7 @@ func validatePassword(password string) (err error) {
 
 }
 
+// Transforms a username into a "url-safe" slug
 func TransformUsernameToSlug(username string) string {
 	slug := strings.ToLower(username)
 	slug = strings.Replace(slug, " ", "-", -1)

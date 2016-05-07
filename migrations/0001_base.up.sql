@@ -67,7 +67,9 @@ CREATE TABLE comments (
 
 
 CREATE TABLE sessions (
-    session_key     uuid        PRIMARY KEY,
-    session_id      uuid        UNIQUE,
+    session_id      uuid        PRIMARY KEY,
+    session_key     uuid        NOT NULL,
     created_at      timestamp   NOT NULL
 );
+
+CREATE INDEX idx_session_key ON sessions (session_key)

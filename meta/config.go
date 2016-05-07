@@ -72,6 +72,7 @@ func NewConfig(path string) (conf Config) {
 type Config struct {
 	Cache      cacheConfig
 	DevServer  devserverConfig `toml:"dev-server"`
+	NATS       natsConfig
 	Postgres   pgConfig
 	Self       selfConfig
 	Validation validationConfig
@@ -97,13 +98,19 @@ type devserverConfig struct {
 	Addr string
 }
 
+type natsConfig struct {
+	URL string
+}
+
 type pgConfig struct {
 	URL string
 }
 
 type selfConfig struct {
-	Env      string
-	Revision string
+	Env           string
+	Revision      string
+	SessionCookie string `toml:"session_cookies"`
+	SigningKey    string `toml:"signing_key"`
 }
 
 type validationConfig struct {
