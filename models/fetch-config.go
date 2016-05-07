@@ -10,7 +10,7 @@ type FetchConfig struct {
 	Cursor int
 }
 
-func FetchConfigFromQuery(u *url.Values) (f *FetchConfig, err error) {
+func FetchConfigFromQuery(u url.Values) (f *FetchConfig) {
 
 	f = &FetchConfig{
 		Limit:  10,
@@ -19,14 +19,14 @@ func FetchConfigFromQuery(u *url.Values) (f *FetchConfig, err error) {
 
 	cursor := u.Get("_cursor")
 	if cursor != "" {
-		f.Cursor, err = strconv.Atoi(cursor)
+		f.Cursor, _ = strconv.Atoi(cursor)
 	}
 
 	limit := u.Get("_limit")
 	if limit != "" {
-		f.Limit = strconv.Atoi(limit)
+		f.Limit, _ = strconv.Atoi(limit)
 	}
 
-	return f, err
+	return f
 
 }

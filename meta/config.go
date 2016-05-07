@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func ResolveConfigLocation() string {
@@ -21,7 +22,7 @@ func NewConfig(path string) (conf Config) {
 	_, err := os.Stat(path)
 	if err != nil {
 		if _, ok := err.(*os.PathError); ok {
-			log.Print("config: base config not found")
+			//log.Print("config: base config not found")
 		} else {
 			log.Panicf("config: stat err :: %v", err)
 		}
@@ -30,7 +31,7 @@ func NewConfig(path string) (conf Config) {
 		if err != nil {
 			log.Panicf("config: decode err :: %v", err)
 		} else {
-			log.Printf("config: loaded root: %s", path)
+			//log.Printf("config: loaded root: %s", path)
 			good = true
 		}
 	}
@@ -39,7 +40,7 @@ func NewConfig(path string) (conf Config) {
 	cd, err := os.Stat(d)
 	if err != nil {
 		if _, ok := err.(*os.PathError); ok {
-			log.Printf("config: %s doesn't exist, skipping")
+			//log.Printf("config: %s doesn't exist, skipping")
 		} else {
 			log.Panicf("config: stat err :: %v", err)
 		}
@@ -50,14 +51,14 @@ func NewConfig(path string) (conf Config) {
 			for _, c := range cdf {
 				_, err = toml.DecodeFile(c, &conf)
 				if err != nil {
-					log.Printf("config: decode err (file: %s) :: %v", c, err)
+					//log.Printf("config: decode err (file: %s) :: %v", c, err)
 				} else {
-					log.Printf("config: loaded conf.d: %s", c)
+					//log.Printf("config: loaded conf.d: %s", c)
 					good = true
 				}
 			}
 		} else {
-			log.Printf("config: %s isn't a directory, skipping")
+			//log.Printf("config: %s isn't a directory, skipping")
 		}
 	}
 
@@ -69,25 +70,31 @@ func NewConfig(path string) (conf Config) {
 }
 
 type Config struct {
-	Cache cacheConfig
-
-	Self      selfConfig
-	DevServer devserverConfig
-	Postgres  pgConfig
+	Cache      cacheConfig
+	DevServer  devserverConfig `toml:"dev-server"`
+	Postgres   pgConfig
+	Self       selfConfig
+	Validation validationConfig
+	Webserver  webserverConfig
 }
 
 type cacheConfig struct {
 	Backend string
 
 	TTL struct {
-		Comment int
-		User    int
-		Save    int
-		Session int
+		Comment time.Duration
+		User    time.Duration
+		Save    time.Duration
+		Session time.Duration
+	}
+
+	Redis struct {
+		Addr string
 	}
 }
 
 type devserverConfig struct {
+	Addr string
 }
 
 type pgConfig struct {
@@ -97,4 +104,17 @@ type pgConfig struct {
 type selfConfig struct {
 	Env      string
 	Revision string
+}
+
+type validationConfig struct {
+	PasswordLength  int      `toml:"password_length"`
+	DisallowedSlugs []string `toml:"disallowed_slugs"`
+	UsernameLength  int      `toml:"username_length"`
+}
+
+type webserverConfig struct {
+	TLS struct {
+		Cert    string
+		Private string
+	}
 }

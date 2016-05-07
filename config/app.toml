@@ -1,5 +1,5 @@
 [cache]
-backend = "bolt"
+backend = "redis"
 
 	[cache.TTL]
 	comment = 86400
@@ -7,6 +7,13 @@ backend = "bolt"
 	save = 86400
 	session = 604800
 
+    [cache.redis]
+    addr = "localhost:6379"
+
 [self]
 env = "local"
 
+[validation]
+username_length = 30
+disallowed_slugs = [ "admin", "global-mod", "moderator", "adminstrator", "adm", "operator" ]
+password_length = 8

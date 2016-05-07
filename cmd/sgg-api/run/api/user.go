@@ -6,13 +6,13 @@ import (
 
 	"save.gg/sgg/meta"
 	m "save.gg/sgg/models"
-	u "save.gg/sgg/util/httputil"
+	util "save.gg/sgg/util/httputil"
 )
 
 func init() {
-	meta.RegisterRoute("GET", "/api/user/:slug", getUser)
 	meta.RegisterRoute("GET", "/api/user/:slug/comments", getUserComments)
 	meta.RegisterRoute("GET", "/api/user/:slug/saves", getUserSaves)
+	meta.RegisterRoute("GET", "/api/user/:slug", getUser)
 }
 
 // GET /api/user/:slug
@@ -20,12 +20,12 @@ func getUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	slug := ps.ByName("slug")
 
-	d := m.UserBySlug(slug)
+	d, _ := m.UserBySlug(slug)
 
 	if d == nil {
-		u.NotFound(w)
+		util.NotFound(w)
 	} else {
-		u.Output(w, d)
+		util.Output(w, d)
 	}
 
 }
@@ -38,12 +38,14 @@ func getUserComments(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	q := r.URL.Query()
 	fc := m.FetchConfigFromQuery(q)
 
-	d := m.UserBySlug(slug).FetchComments(fc)
+	u, _ := m.UserBySlug(slug)
+
+	d, _ := u.FetchSaves(fc)
 
 	if d == nil {
-		u.NotFound(w)
+		util.NotFound(w)
 	} else {
-		u.Output(w, d)
+		util.Output(w, d)
 	}
 
 }
@@ -56,12 +58,14 @@ func getUserSaves(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 	q := r.URL.Query()
 	fc := m.FetchConfigFromQuery(q)
 
-	d := m.UserBySlug(slug).FetchSaves(fc)
+	u, _ := m.UserBySlug(slug)
+
+	d, _ := u.FetchSaves(fc)
 
 	if d == nil {
-		u.NotFound(w)
+		util.NotFound(w)
 	} else {
-		u.Output(w, d)
+		util.Output(w, d)
 	}
 
 }

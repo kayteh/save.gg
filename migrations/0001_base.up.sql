@@ -19,7 +19,7 @@ CREATE TABLE users (
     deleted_at  timestamp,
     old_secrets jsonb,
     known_ips   jsonb,
-    session_key uuid        UNIQUE NOT NULL
+    session_key uuid        UNIQUE
 );
 
 CREATE INDEX idx_user_known_ips ON users USING gin (known_ips);
@@ -67,7 +67,7 @@ CREATE TABLE comments (
 
 
 CREATE TABLE sessions (
-    session_id      uuid        PRIMARY KEY,
-    session_key     uuid        NOT NULL,
+    session_key     uuid        PRIMARY KEY,
+    session_id      uuid        UNIQUE,
     created_at      timestamp   NOT NULL
 );

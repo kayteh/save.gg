@@ -41,6 +41,17 @@ Usage:
 - `sgg-tools touch url <URL>` - By canonical URL
 
 
+### `register-user`
+
+Creates a new user with credentials.
+
+Usage:
+
+- `sgg-tools register-user` - Interactive mode
+
+- `sgg-tools register-user [-u username] [-p password] [-e email] [-a]` - Full CLI mode, will go interactive to fill anything missing.  
+   -a flag sets admin.
+
 ### `debug-config`
 
 Outputs the current configuration.

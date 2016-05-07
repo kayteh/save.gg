@@ -7,6 +7,7 @@ import (
 
 	"save.gg/sgg/meta"
 
+	debugUser "save.gg/sgg/cmd/sgg-tools/run/debug-user"
 	"save.gg/sgg/cmd/sgg-tools/run/migrate"
 	//"save.gg/sgg/cmd/sgg-tools/run/touch"
 )
@@ -44,6 +45,30 @@ func main() {
 			Name:  "touch",
 			Usage: "Touches a model.",
 			//Action: touch.CliStart(),
+		},
+		{
+			Name:  "debug-user",
+			Usage: "debug user-related things",
+			Subcommands: []cli.Command{
+				{
+					Name:   "register",
+					Action: debugUser.Register,
+					Flags: []cli.Flag{
+						cli.BoolFlag{Name: "test, t"},
+						cli.StringFlag{Name: "username, u"},
+						cli.StringFlag{Name: "password, p"},
+						cli.StringFlag{Name: "email, e"},
+						cli.BoolFlag{Name: "admin, a"},
+					},
+				},
+				{
+					Name:   "login",
+					Action: debugUser.Login,
+					Flags: []cli.Flag{
+						cli.StringFlag{Name: "username, u"},
+					},
+				},
+			},
 		},
 		{
 			Name: "debug-config",
