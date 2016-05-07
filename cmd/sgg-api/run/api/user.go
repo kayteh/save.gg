@@ -17,7 +17,7 @@ func init() {
 // GET /api/user/~
 func getUserSelf(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	s, err := m.SessionFromRequest(r)
-	if err == errors.SessionNotFound {
+	if err == errors.SessionNotFound || err == errors.SessionTokenInvalid {
 		util.NotFound(w)
 		return
 	}

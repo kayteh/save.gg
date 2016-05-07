@@ -32,7 +32,7 @@ func SessionFromRequest(req *http.Request) (s *Session, err error) {
 
 	if err != nil {
 		meta.App.Log.WithError(err).Error("jwt errored")
-		return nil, err
+		return nil, errors.SessionTokenInvalid
 	}
 
 	if !token.Valid {
@@ -80,7 +80,6 @@ func NewSession(key string) (s *Session, err error) {
 	if key == "" {
 		s.SessionKey = generateKey()
 	} else {
-		meta.App.Log.WithField("key", key).Info("for some reason..")
 		s.SessionKey = key
 	}
 	s.SessionID = generateKey()
