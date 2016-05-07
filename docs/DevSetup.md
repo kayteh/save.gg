@@ -30,6 +30,12 @@ sgg-tools debug-user register -a
 # Start sgg-dev
 sgg-dev
 
+# OR
+
+# Start a save.gg cluster
+# You only need this if you're working on cluster communications or sgg-router.
+sgg-tools dev-cluster
+
 # Start gulp
 cd client
 gulp
