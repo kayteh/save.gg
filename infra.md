@@ -5,6 +5,9 @@
 - **Primary**: Postgres (XC in production)
   * Operates as the single source of truth, period.
 
+- **Secondary/NoSQL**: RethinkDB
+  * All unstructured data.
+
 - **Caching**: Redis
   * Write-through LRU + timeout cache.
 
