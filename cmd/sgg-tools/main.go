@@ -1,3 +1,8 @@
+// Save.gg Toolbox.
+//
+// This package is documented at docs/Toolbox.md.
+// There's a lot to explain, and code documentation isn't going
+// to help much.
 package main
 
 import (

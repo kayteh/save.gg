@@ -1,4 +1,4 @@
-// Dev Server skips NATS-based routing and hooks everything directly.
+// API server
 package main
 
 import (
