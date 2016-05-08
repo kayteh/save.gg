@@ -46,7 +46,7 @@ func Register(ctx *cli.Context) {
 	}
 
 	if admin {
-		u.AppendACL("admin")
+		u.ACL.Append("admin")
 	}
 
 	err = u.Insert()

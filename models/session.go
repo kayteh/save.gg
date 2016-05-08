@@ -16,6 +16,8 @@ type Session struct {
 	SessionKey string    `db:"session_key"`
 	CreatedAt  time.Time `db:"created_at"`
 	User       *User
+
+	userAttached bool
 }
 
 func SessionFromRequest(req *http.Request) (s *Session, err error) {
@@ -110,7 +112,12 @@ func (s *Session) Token() (t string, err error) {
 }
 
 func (s *Session) AttachUser() (err error) {
+	if s.userAttached {
+		return nil
+	}
+
 	s.User, err = UserBySessionKey(s.SessionKey)
+	s.userAttached = true
 
 	return err
 }

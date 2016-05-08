@@ -1,15 +1,13 @@
 package models
 
 import (
-	"fmt"
-	// "github.com/jmoiron/sqlx"
-	"bytes"
 	"database/sql"
 	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
 	"save.gg/sgg/meta"
 	"save.gg/sgg/util/errors"
+	"save.gg/sgg/util/pq"
 	"strings"
 	"time"
 )
@@ -29,35 +27,38 @@ const (
 	UserACLSupernova  = "dev:nova"
 )
 
-var (
+const (
+	// Allowed characters in an email. This shit is cray.
+	// Copied from https://github.com/go-playground/validator/blob/v8/regexes.go#L16
+	emailRegexString = "^(?:(?:(?:(?:[a-zA-Z]|\\d|[!#\\$%&'\\*\\+\\-\\/=\\?\\^_`{\\|}~]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])+(?:\\.([a-zA-Z]|\\d|[!#\\$%&'\\*\\+\\-\\/=\\?\\^_`{\\|}~]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])+)*)|(?:(?:\\x22)(?:(?:(?:(?:\\x20|\\x09)*(?:\\x0d\\x0a))?(?:\\x20|\\x09)+)?(?:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]|\\x21|[\\x23-\\x5b]|[\\x5d-\\x7e]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:\\(?:[\\x01-\\x09\\x0b\\x0c\\x0d-\\x7f]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}]))))*(?:(?:(?:\\x20|\\x09)*(?:\\x0d\\x0a))?(\\x20|\\x09)+)?(?:\\x22)))@(?:(?:(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])(?:[a-zA-Z]|\\d|-|\\.|_|~|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])*(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])))\\.)+(?:(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])(?:[a-zA-Z]|\\d|-|\\.|_|~|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])*(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])))\\.?$"
+
 	// Allowed characters in a username.
 	//
 	// A-Z, a-z, 0-9, _, and - are allowed, and spaces are allowed anywhere but the start and end.
 	//
 	// I'm aware that if someone wants a username with two letters and 28 spaces wants to do that,
 	// I'm allowing it thus far.
-	allowedCharacters = regexp.MustCompile(`\A[a-zA-Z0-9_\-](?:(?:[a-zA-Z0-9_\-\ ]+)?[a-zA-Z0-9_\-])?\z`)
+	usernameRegexString = `\A[a-zA-Z0-9_\-](?:(?:[a-zA-Z0-9_\-\ ]+)?[a-zA-Z0-9_\-])?\z`
+)
+
+var (
+	allowedCharacters = regexp.MustCompile(usernameRegexString)
+	acceptableEmail   = regexp.MustCompile(emailRegexString)
 )
 
 // A user, duh!
-//
-// Some notes
-//
-// Due to postgres being better than every other SQL DB, any special
-// data structures (jsonb, arrays, etc), need to be []byte slices and converted before and after
-// DB fetches/commits. An example of this workaround are the ACL functions on this type. In the future,
-// helpers might be written.
 type User struct {
-	ID         string   `db:"user_id" json:"id,omitempty"`
-	Slug       string   `json:"slug"`
-	Username   string   `json:"username"`
-	Email      string   `json:"email,omitempty"`
-	Secret     string   `json:"secret,omitempty"`
-	SessionKey string   `json:"session_key,omitempty" db:"session_key"`
-	ACL        []byte   `json:"-"`   // sqlx-readable ACL
-	RealACL    []string `json:"acl"` // Human-readable ACL
-	SubLevel   string   `json:"sub_level" db:"sub_level"`
-	Activated  bool     `json:"activated"`
+	ID         string        `db:"user_id" json:"id,omitempty"`
+	Slug       string        `json:"slug"`
+	Username   string        `json:"username"`
+	Email      string        `json:"email,omitempty"`
+	Secret     string        `json:"secret,omitempty"`
+	SessionKey string        `json:"session_key,omitempty" db:"session_key"`
+	ACL        *pq.TextArray `json:"acl"`
+	SubLevel   string        `json:"sub_level" db:"sub_level"`
+	Activated  bool          `json:"activated"`
+
+	// NoSQL data
 
 	// Timestamps
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
@@ -82,8 +83,6 @@ func UserBySlug(slug string) (*User, error) {
 		return nil, errors.UserNotFound
 	}
 
-	user.setACLPq()
-
 	return user, err
 
 }
@@ -99,8 +98,6 @@ func UserByEmail(email string) (*User, error) {
 		return nil, errors.UserNotFound
 	}
 
-	user.setACLPq()
-
 	return user, err
 
 }
@@ -115,8 +112,6 @@ func UserBySessionKey(key string) (*User, error) {
 	if err == sql.ErrNoRows {
 		return nil, errors.UserNotFound
 	}
-
-	user.setACLPq()
 
 	return user, err
 
@@ -154,6 +149,33 @@ func (u *User) Presentable() *User {
 	return newUser
 }
 
+// Patch merges a a new user map into the current.
+func (u *User) Patch(incoming map[string]interface{}) (err error) {
+	for key, val := range incoming {
+
+		switch key {
+
+		case "secret":
+			err = u.CreateSecret(val.(string))
+			DestroySessionsByKey(u.SessionKey)
+
+		case "username":
+			err = u.SetUsername(val.(string))
+
+		case "email":
+			err = u.SetEmail(val.(string))
+
+		}
+
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
 // Authenicates a user based on their username or email, and their password.
 func UserAuth(handle, password string) (u *User, err error) {
 	if strings.Contains(handle, "@") {
@@ -179,6 +201,18 @@ func UserAuth(handle, password string) (u *User, err error) {
 	return u, nil
 }
 
+// Check if a user can modify this user.
+// This is either itself or someone with the ACL role "admin".
+func (u *User) UserCanModify(mu *User) bool {
+
+	if u.ID == mu.ID || mu.ACL.Has(UserACLAdmin) {
+		return true
+	}
+
+	return false
+
+}
+
 // Saves a user to the truth store, then touches.
 func (u *User) Save() (err error) {
 
@@ -191,7 +225,6 @@ func (u *User) Save() (err error) {
 	}
 
 	u.UpdatedAt = time.Now()
-	u.ACL = u.getACLPq()
 
 	_, err = db.NamedExec(`
 		UPDATE users SET
@@ -219,8 +252,7 @@ func (u *User) Insert() (err error) {
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
 	u.SessionKey = generateKey()
-	u.AppendACL("user")
-	u.ACL = u.getACLPq()
+	u.ACL.Append("user")
 
 	_, err = db.NamedExec(`
 		INSERT INTO users ( 
@@ -246,53 +278,6 @@ func (u *User) Purge() (err error) {
 	_, err = db.Exec(`DELETE FROM users WHERE user_id = $1 LIMIT 1`, u.ID)
 	return err
 }
-
-// Gets the byte array from the human-readable ACL to store in postgres.
-func (u *User) getACLPq() []byte {
-	// if len(u.realACL) == 0 {
-	// 	return []byte("{}")
-	// }
-
-	return []byte(fmt.Sprintf("{%s}", strings.Join(u.RealACL, ",")))
-}
-
-// Sets the human-readable ACL from go-sql's byte array
-func (u *User) setACLPq() {
-	b := u.ACL
-
-	if len(b) <= 2 {
-		return
-	}
-
-	p := bytes.Split(b[1:len(b)-1], []byte(","))
-
-	for _, r := range p {
-		if len(r) == 0 {
-			continue
-		} else {
-			u.RealACL = append(u.RealACL, string(r))
-		}
-	}
-
-	return
-}
-
-// Appends a new ACL to the list
-func (u *User) AppendACL(role string) {
-	u.RealACL = append(u.RealACL, role)
-
-	return
-}
-
-// Gets the real ACL values
-func (u *User) GetACL() []string {
-	return u.RealACL
-}
-
-// func (u *User) HasACL(role string) bool {
-// 	r := []byte(role)
-
-// }
 
 // Creates a new Session for the user.
 func (u *User) CreateSession() (s *Session, err error) {
@@ -379,6 +364,17 @@ func (u *User) SetUsername(username string) (err error) {
 
 	u.Username = username
 	u.Slug = s
+
+	return nil
+}
+
+// Validates then sets an email.
+func (u *User) SetEmail(email string) (err error) {
+	if !acceptableEmail.MatchString(email) {
+		return errors.UserEmailInvalid
+	}
+
+	u.Email = email
 
 	return nil
 }
