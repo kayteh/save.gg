@@ -1,3 +1,4 @@
+// HTTP REST API utilities
 package httputil
 
 import (
@@ -7,6 +8,7 @@ import (
 	a "save.gg/sgg/meta"
 )
 
+// Outputs d to JSON, and that JSON to the ResponseWriter. This is an express route.
 func Output(w http.ResponseWriter, d interface{}) (err error) {
 	var o []byte
 
@@ -25,6 +27,7 @@ func Output(w http.ResponseWriter, d interface{}) (err error) {
 	return nil
 }
 
+// Returns a generic 404 response
 func NotFound(w http.ResponseWriter) (err error) {
 
 	w.WriteHeader(http.StatusNotFound)
@@ -34,6 +37,7 @@ func NotFound(w http.ResponseWriter) (err error) {
 
 }
 
+// Returns a generic 403 response
 func Forbidden(w http.ResponseWriter) (err error) {
 
 	w.WriteHeader(http.StatusForbidden)
@@ -43,6 +47,7 @@ func Forbidden(w http.ResponseWriter) (err error) {
 
 }
 
+// Returns a generic 500 response
 func InternalServerError(w http.ResponseWriter, e error) (err error) {
 
 	w.WriteHeader(http.StatusInternalServerError)

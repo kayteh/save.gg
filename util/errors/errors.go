@@ -1,3 +1,6 @@
+// Global errors.
+//
+// This is in it's own package to prevent cyclic imports.
 package errors
 
 import (

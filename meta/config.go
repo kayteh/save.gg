@@ -8,10 +8,25 @@ import (
 	"time"
 )
 
+// Resolves the configuration location from various sources.
+//TODO(kkz): Actually implement this properly
 func ResolveConfigLocation() string {
 	return "./config/app.toml"
 }
 
+// Parses many TOML files from a few different locations to create the app config.
+//
+// Precedence
+//
+// command-line,
+//
+// conf.d in glob order,
+//
+// root (app.toml),
+//
+// Using this, you could set two postgres configs, 00-postgres.toml and
+// 01-postgres.toml, and the latter will overwrite any values 00 has, and
+// 00 will overwrite any values app.toml has. Exploit this for production config.
 func NewConfig(path string) (conf Config) {
 	good := false
 
@@ -69,6 +84,8 @@ func NewConfig(path string) (conf Config) {
 	return conf
 }
 
+// Configuration structure. Keep this in alphabetical order.
+//TODO(kkz): consolidate and cleanup
 type Config struct {
 	Cache      cacheConfig
 	DevServer  devserverConfig `toml:"dev-server"`

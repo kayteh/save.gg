@@ -30,9 +30,23 @@ const (
 )
 
 var (
+	// Allowed characters in a username.
+	//
+	// A-Z, a-z, 0-9, _, and - are allowed, and spaces are allowed anywhere but the start and end.
+	//
+	// I'm aware that if someone wants a username with two letters and 28 spaces wants to do that,
+	// I'm allowing it thus far.
 	allowedCharacters = regexp.MustCompile(`\A[a-zA-Z0-9_\-](?:(?:[a-zA-Z0-9_\-\ ]+)?[a-zA-Z0-9_\-])?\z`)
 )
 
+// A user, duh!
+//
+// Some notes
+//
+// Due to postgres being better than every other SQL DB, any special
+// data structures (jsonb, arrays, etc), need to be []byte slices and converted before and after
+// DB fetches/commits. An example of this workaround are the ACL functions on this type. In the future,
+// helpers might be written.
 type User struct {
 	ID         string   `db:"user_id" json:"id,omitempty"`
 	Slug       string   `json:"slug"`
@@ -40,11 +54,12 @@ type User struct {
 	Email      string   `json:"email,omitempty"`
 	Secret     string   `json:"secret,omitempty"`
 	SessionKey string   `json:"session_key,omitempty" db:"session_key"`
-	ACL        []byte   `json:"-"`
-	RealACL    []string `json:"acl"`
+	ACL        []byte   `json:"-"`   // sqlx-readable ACL
+	RealACL    []string `json:"acl"` // Human-readable ACL
 	SubLevel   string   `json:"sub_level" db:"sub_level"`
 	Activated  bool     `json:"activated"`
 
+	// Timestamps
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	DeletedAt time.Time `json:"-" db:"deleted_at"`
@@ -279,6 +294,7 @@ func (u *User) GetACL() []string {
 
 // }
 
+// Creates a new Session for the user.
 func (u *User) CreateSession() (s *Session, err error) {
 	s, err = NewSession(u.SessionKey)
 	if err != nil {
