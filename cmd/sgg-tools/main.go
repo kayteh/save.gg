@@ -9,6 +9,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"os"
+	"runtime"
 
 	"save.gg/sgg/meta"
 
@@ -18,6 +19,9 @@ import (
 )
 
 func main() {
+
+	workers := runtime.NumCPU()
+	runtime.GOMAXPROCS(workers)
 
 	a := cli.NewApp()
 	a.Name = "sgg-tools"
