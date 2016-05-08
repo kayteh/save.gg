@@ -1,23 +1,16 @@
 package meta
 
 import (
-	"errors"
+	//"errors"
 	log "github.com/Sirupsen/logrus"
 	uuid "github.com/satori/go.uuid"
 	"os"
 	"testing"
 )
 
-var tmpDir string = ""
-
 func writeToml(name string, data string) error {
-	if tmpDir == "" {
-		return errors.New("tmpDir must be set")
-	}
 
-	//log.WithField("filename", tmpDir+"/"+name+".toml").Info("writing out toml")
-
-	f, err := os.OpenFile(tmpDir+"/"+name+".toml", os.O_WRONLY|os.O_CREATE, 0644)
+	f, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0644)
 
 	if err != nil {
 		return err
@@ -36,105 +29,82 @@ func writeToml(name string, data string) error {
 func makeTmpDir() (d string, err error) {
 	td := os.TempDir() + "gg.save.test/"
 	u := uuid.NewV4().String()
+	d = td + u
 
-	if err = os.Mkdir(td+u, 0777); err != nil {
+	if err = os.MkdirAll(d+"/conf.d", 0777); err != nil {
 		return d, err
 	}
-
-	d = td + u
 
 	//log.WithField("temp dir", d).Info("using temp dir")
 
 	return d, nil
 }
 
+func destroyTmpDir(tmpDir string) error {
+	return os.RemoveAll(tmpDir)
+}
+
 func TestBasicConfiguration(t *testing.T) {
-	var err error
-	if tmpDir, err = makeTmpDir(); err != nil {
+	tmpDir, err := makeTmpDir()
+	if err != nil {
 		t.Fatal(err)
 	}
-
 	def := `
-role = "backend"
-
-[webserver]
-port = 8441
-
-	[ssl]
-	cert = "/dev/null"
-	key = "/dev/null"
-
-[network]
-bind = "0.0.0.0"
-publish = "127.0.1.1"
+[self]
+env = "test"
+signing_key = "1234567890abcdefghijklmnopqrstuvwxyz"
 `
 
-	writeToml("default", def)
+	writeToml(tmpDir+"/app.toml", def)
 
-	a := &Application{
-		configDir: tmpDir,
-		Env:       "test-jig",
-		Log:       log.New().WithFields(log.Fields{}),
-	}
+	c := NewConfig(tmpDir + "/app.toml")
 
-	a.Conf = a.NewConfig()
-
-	if a.Conf.Network.Publish != "127.0.1.1" {
+	if c.Self.Env != "test" {
+		log.WithField("config", c).Error("configuration didn't set.")
 		t.Fail()
 	}
+
+	destroyTmpDir(tmpDir)
+
 }
 
 func TestCascadingConfiguration(t *testing.T) {
-	var err error
-	if tmpDir, err = makeTmpDir(); err != nil {
+	tmpDir, err := makeTmpDir()
+	if err != nil {
 		t.Fatal(err)
 	}
 
 	def := `
-role = "backend"
-
-[webserver]
-port = 8441
-
-	[ssl]
-	cert = "/dev/null"
-	key = "/dev/null"
-
-[network]
-bind = "0.0.0.0"
-publish = "127.0.1.1"
-`
-	writeToml("default", def)
-
-	tj := `
-[network]
-publish = "127.0.2.1"
+[self]
+env = "test"
+signing_key = "1234567890abcdefghijklmnopqrstuvwxyz"
 `
 
-	writeToml("test-jig", tj)
+	writeToml(tmpDir+"/app.toml", def)
 
-	a := &Application{
-		Env:       "test-jig",
-		Log:       log.New().WithFields(log.Fields{}),
-		configDir: tmpDir,
-	}
+	def2 := `
+[self]
+env = "test-00"
+`
 
-	a.Conf = a.NewConfig()
+	writeToml(tmpDir+"/conf.d/00-test.toml", def2)
 
-	if a.Conf.Network.Publish != "127.0.2.1" {
+	c := NewConfig(tmpDir + "/app.toml")
+
+	if c.Self.Env != "test-00" {
+		log.WithField("config", c).Error("configuration didn't set.")
 		t.Fail()
 	}
 
-	if t.Failed() {
-		if a.Conf.Network.Publish == "127.0.1.1" {
-			t.Log("failed because test config didn't cascade")
-		}
+	if c.Self.SigningKey != "1234567890abcdefghijklmnopqrstuvwxyz" {
+		log.Error("configuration overwrote without superceding")
+		t.Fail()
 	}
+
+	destroyTmpDir(tmpDir)
 }
 
 func TestMain(m *testing.M) {
 	r := m.Run()
-	os.RemoveAll(tmpDir)
-	tmpDir = ""
 	os.Exit(r)
 }

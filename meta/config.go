@@ -11,6 +11,11 @@ import (
 // Resolves the configuration location from various sources.
 //TODO(kkz): Actually implement this properly
 func ResolveConfigLocation() string {
+	envConfig := os.Getenv("SGG_CONFIG")
+	if envConfig != "" {
+		return envConfig
+	}
+
 	return "./config/app.toml"
 }
 
@@ -18,11 +23,11 @@ func ResolveConfigLocation() string {
 //
 // Precedence
 //
-// command-line,
+// command-line (on some,)
 //
 // conf.d in glob order,
 //
-// root (app.toml),
+// root (app.toml,)
 //
 // Using this, you could set two postgres configs, 00-postgres.toml and
 // 01-postgres.toml, and the latter will overwrite any values 00 has, and
@@ -37,7 +42,7 @@ func NewConfig(path string) (conf Config) {
 	_, err := os.Stat(path)
 	if err != nil {
 		if _, ok := err.(*os.PathError); ok {
-			//log.Print("config: base config not found")
+			log.Printf("config: base config not found at %s", path)
 		} else {
 			log.Panicf("config: stat err :: %v", err)
 		}
@@ -46,7 +51,7 @@ func NewConfig(path string) (conf Config) {
 		if err != nil {
 			log.Panicf("config: decode err :: %v", err)
 		} else {
-			//log.Printf("config: loaded root: %s", path)
+			// log.Printf("config: loaded root: %s", path)
 			good = true
 		}
 	}
@@ -55,7 +60,7 @@ func NewConfig(path string) (conf Config) {
 	cd, err := os.Stat(d)
 	if err != nil {
 		if _, ok := err.(*os.PathError); ok {
-			//log.Printf("config: %s doesn't exist, skipping")
+			log.Printf("config: %s doesn't exist, skipping")
 		} else {
 			log.Panicf("config: stat err :: %v", err)
 		}
@@ -66,14 +71,14 @@ func NewConfig(path string) (conf Config) {
 			for _, c := range cdf {
 				_, err = toml.DecodeFile(c, &conf)
 				if err != nil {
-					//log.Printf("config: decode err (file: %s) :: %v", c, err)
+					log.Printf("config: decode err (file: %s) :: %v", c, err)
 				} else {
-					//log.Printf("config: loaded conf.d: %s", c)
+					// log.Printf("config: loaded conf.d: %s", c)
 					good = true
 				}
 			}
 		} else {
-			//log.Printf("config: %s isn't a directory, skipping")
+			log.Printf("config: %s isn't a directory, skipping")
 		}
 	}
 
