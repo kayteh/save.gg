@@ -133,6 +133,12 @@
 			"path": "golang.org/x/sys/unix",
 			"revision": "320cb01ddbbf0473674c2585f9b6e245721de355",
 			"revisionTime": "2016-03-24T17:42:57-04:00"
+		},
+		{
+			"checksumSHA1": "pEe74ZLm0C38JAIFdjujU4vnPak=",
+			"path": "gopkg.in/dgrijalva/jwt-go.v2",
+			"revision": "a2c85815a77d0f951e33ba4db5ae93629a1530af",
+			"revisionTime": "2016-04-13T00:36:00Z"
 		}
 	],
 	"rootPath": "save.gg/sgg"

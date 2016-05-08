@@ -49,27 +49,11 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	DeletedAt time.Time `json:"-" db:"deleted_at"`
 
-	OldSecrets []byte `json:"old_secrets,omitempty" db:"old_secrets"`
-
-	KnownIPs []byte `json:"known_ips,omitempty" db:"known_ips"`
-
 	// Joined data
 	Saves []Save `json:"saves,omitempty"`
 
 	// Metadata
 	presentable bool
-}
-
-type UserOldSecrets []struct {
-	sql.NullString
-	Secret        string
-	InvalidatedAt time.Time
-}
-
-type UserKnownIPs []struct {
-	sql.NullString
-	IP       string
-	LastSeen time.Time
 }
 
 // Finds a user by their slug.
@@ -129,8 +113,8 @@ func userQuery(userPtr *User, constraint, value string) error {
 	SELECT 
 		user_id, slug, username, email,
 		secret, acl, sub_level,
-		activated, created_at, updated_at,
-		old_secrets, known_ips, session_key
+		activated, created_at, 
+		updated_at, session_key
 	FROM users 
 	WHERE deleted_at IS NULL 
 		AND `+constraint+` = $1 

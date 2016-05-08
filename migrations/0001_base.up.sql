@@ -17,12 +17,8 @@ CREATE TABLE users (
     created_at  timestamp   NOT NULL,
     updated_at  timestamp   NOT NULL,
     deleted_at  timestamp,
-    old_secrets jsonb,
-    known_ips   jsonb,
     session_key uuid        UNIQUE
 );
-
-CREATE INDEX idx_user_known_ips ON users USING gin (known_ips);
 
 
 
