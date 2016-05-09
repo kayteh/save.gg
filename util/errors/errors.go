@@ -27,7 +27,14 @@ var (
 	SessionNotFound     = errors.New("sgg: session not found")
 
 	// models/security
-	CSRFTokenInvalid   = errors.New("sgg: csrf token invalid")
-	CSRFOriginMismatch = errors.New("sgg: csrf origin mismatch")
-	CSRFSessionInvalid = errors.New("sgg: csrf session invalid")
+	CSRFOriginMismatch   = errors.New("sgg: csrf origin mismatch")
+	CSRFSessionInvalid   = errors.New("sgg: csrf session invalid")
+	SecurityTokenInvalid = errors.New("sgg: security token invalid")
+
+	// models/consumer
+	ConsumerAPIKeyNotFound = errors.New("sgg: api key not found")
+	ConsumerAPIKeyInactive = errors.New("sgg: api key inactive (contact support)")
+
+	// cmd/sgg-api/run/api
+	APIRateLimited = errors.New("sgg: enhance your calm")
 )

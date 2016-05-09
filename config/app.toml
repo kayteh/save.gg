@@ -12,13 +12,14 @@ backend = "redis"
 
 [self]
 env = "local"
-signing_key = "71cbRVP7CvlSzlJJYkDTDhAdDvZw6KyMKFLEilY9R8ga0EqrqH8ZUEp3Oczry3YfVVcAGhtilaVsbX812FW5vKlc0gfc6U8W"
 session_cookie = "space"
-
-[csrf]
-signing_key = "m5qcvnGwwSK9Mzh2fQiCkNV3T1IJXkRodW596q7w6TBYKuFbtENQtJaUd6TRwGouTZOP5o55UT1CMYlp9mkhvdgCyJm7uZMu"
 
 [validation]
 username_length = 30
-disallowed_slugs = [ "admin", "global-mod", "moderator", "adminstrator", "adm", "operator" ]
+disallowed_slugs = [ "admin", "global-mod", "moderator", "adminstrator", "adm", "operator", "root" ]
 password_length = 8
+
+[security.signing_keys]
+csrf = "m5qcvnGwwSK9Mzh2fQiCkNV3T1IJXkRodW596q7w6TBYKuFbtENQtJaUd6TRwGouTZOP5o55UT1CMYlp9mkhvdgCyJm7uZMu"
+session = "71cbRVP7CvlSzlJJYkDTDhAdDvZw6KyMKFLEilY9R8ga0EqrqH8ZUEp3Oczry3YfVVcAGhtilaVsbX812FW5vKlc0gfc6U8W"
+internal = "TyoIQtSaHgLhWKuXE30zRVLV3jScvamhdnpky3JgRlRxSprdXalrBVBJNQq8bfWsbaEqMf37jKs1YaqfhRrk40BcboJAVhTz"

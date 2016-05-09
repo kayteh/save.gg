@@ -102,10 +102,10 @@ type Config struct {
 	DevServer  devserverConfig `toml:"dev-server"`
 	NATS       natsConfig
 	Postgres   pgConfig
+	Security   securityConfig
 	Self       selfConfig
 	Validation validationConfig
 	Webserver  webserverConfig
-	CSRF       csrfConfig
 }
 
 type cacheConfig struct {
@@ -138,6 +138,14 @@ type natsConfig struct {
 
 type pgConfig struct {
 	URL string
+}
+
+type securityConfig struct {
+	SigningKeys struct {
+		CSRF     string
+		Internal string
+		Session  string
+	} `toml:"signing_keys"`
 }
 
 type selfConfig struct {

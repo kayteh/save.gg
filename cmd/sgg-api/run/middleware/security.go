@@ -43,10 +43,12 @@ func (s *SecurityFlags) Resolve() {
 		s.CSRF = true
 		s.APIKey = true
 		s.Signed = true
+		s.Internal = true
 	}
 
 	if s.Loose {
 		s.Signed = true
+		s.Internal = true
 		s.NoEnforce = true
 	}
 }
@@ -56,7 +58,7 @@ func (s *SecurityFlags) WriteTriedHeader(w http.ResponseWriter) {
 	var v []string
 
 	if s.CSRF {
-		v = append(v, "CSRF")
+		v = append(v, "CSRF-Token")
 	}
 
 	if s.Signed {
@@ -65,6 +67,10 @@ func (s *SecurityFlags) WriteTriedHeader(w http.ResponseWriter) {
 
 	if s.APIKey {
 		v = append(v, "API-Key")
+	}
+
+	if s.Internal {
+		v = append(v, "Universe")
 	}
 
 	w.Header().Add("SGG-Validations-Tried", strings.Join(v, ", "))
@@ -81,14 +87,25 @@ func securityCheck(sec *SecurityFlags, w http.ResponseWriter, r *http.Request) b
 
 	sec.Resolve()
 
-	//TODO(kkz): add normal rate-limiting check here
+	if sec.Internal {
+		valid, err := m.CheckInternalRequest(r)
+		if err != nil {
+			meta.App.Log.WithError(err).Error("internal signature validation error")
+			//util.InternalServerError(w, err)
+		}
+
+		if valid {
+			return true
+		}
+	}
+
+	//TODO(kkz): add normal rate-limiting check here (after internal so it's never enforced for ourselves.)
 
 	if sec.Signed {
 		valid, err := m.CheckSignedRequest(r)
 		if err != nil {
 			meta.App.Log.WithError(err).Error("signature validation error")
-			util.InternalServerError(w, err)
-			return false
+			//util.InternalServerError(w, err)
 		}
 
 		if valid {
@@ -100,8 +117,7 @@ func securityCheck(sec *SecurityFlags, w http.ResponseWriter, r *http.Request) b
 		valid, err := m.CheckCSRFRequest(r)
 		if err != nil {
 			meta.App.Log.WithError(err).Error("csrf validation error")
-			util.InternalServerError(w, err)
-			return false
+			//util.InternalServerError(w, err)
 		}
 
 		if valid {
@@ -113,8 +129,8 @@ func securityCheck(sec *SecurityFlags, w http.ResponseWriter, r *http.Request) b
 		valid, err := m.CheckAPIKeyRequest(r)
 		if err != nil {
 			meta.App.Log.WithError(err).Error("api key validation error")
-			util.InternalServerError(w, err)
-			return false
+			//util.InternalServerError(w, err)
+			//return false
 		}
 
 		if valid {
@@ -156,7 +172,12 @@ func SC(fn httprouter.Handle) httprouter.Handle {
 	return SecurityCheck(fn, &SecurityFlags{Loose: true})
 }
 
-// Shorthand for an "all" endpoint (CA = Check all)
+// Shorthand for an "all" endpoint. (CA = Check all)
 func CA(fn httprouter.Handle) httprouter.Handle {
 	return SecurityCheck(fn, &SecurityFlags{All: true})
+}
+
+// Shorthane for internal routes.
+func I(fn httprouter.Handle) httprouter.Handle {
+	return SecurityCheck(fn, &SecurityFlags{Internal: true})
 }

@@ -44,7 +44,7 @@ func SessionFromRequest(req *http.Request) (s *Session, err error) {
 	}
 
 	token, err := jwt.Parse(ts, func(token *jwt.Token) (interface{}, error) {
-		return []byte(meta.App.Conf.Self.SigningKey), nil
+		return []byte(meta.App.Conf.Security.SigningKeys.Session), nil
 	})
 
 	if err != nil {
@@ -137,12 +137,14 @@ func (s *Session) Token() (t string, err error) {
 	token := jwt.New(jwt.GetSigningMethod("HS256"))
 	token.Claims["session_id"] = s.SessionID
 
-	t, err = token.SignedString([]byte(meta.App.Conf.Self.SigningKey))
+	t, err = token.SignedString([]byte(meta.App.Conf.Security.SigningKeys.Session))
 	s.token = t
 	return t, err
 }
 
 // Sets the token to HTTP cookie.
+//
+// Do not, not, NOT set a max-age or expires header. Let the browser handle this.
 func (s *Session) SetCookie(w http.ResponseWriter) {
 	t, _ := s.Token()
 
@@ -151,7 +153,6 @@ func (s *Session) SetCookie(w http.ResponseWriter) {
 		Value:    t,
 		HttpOnly: true,
 		Secure:   true,
-		Expires:  time.Now().Add(7 * 24 * time.Hour),
 	}
 
 	http.SetCookie(w, cookie)

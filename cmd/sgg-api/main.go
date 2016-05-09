@@ -1,4 +1,4 @@
-// API server
+// API server component of Save.gg.
 package main
 
 import (

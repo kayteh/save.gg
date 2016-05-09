@@ -86,10 +86,11 @@ func logEvent(r *http.Request, ww *responseWriterWrapper, d time.Duration) {
 	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 
 	meta.App.Log.WithFields(log.Fields{
-		"code":  ww.code,
-		"time":  d.Seconds(),
-		"agent": r.UserAgent(),
-		"ip":    ip,
+		"code":   ww.code,
+		"time":   d.Seconds(),
+		"agent":  r.UserAgent(),
+		"ip":     ip,
+		"accept": r.Header.Get("Accept"),
 	}).Infof("%d %s", ww.code, r.RequestURI)
 
 	// todo output to influxdb
