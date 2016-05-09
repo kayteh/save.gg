@@ -24,7 +24,7 @@ func CheckAPIKeyRequest(r *http.Request) (ok bool, err error) {
 // Check CSRF header for a Session ID and Origin, and tests if they are valid.
 //
 // This is computed on the frontend renderer,
-// although *Session.GenerateCSRFToken can do it on this side of the app.
+// although *Session.GenerateCSRFToken can do it on this side of the app for testing reasons.
 func CheckCSRFRequest(r *http.Request) (ok bool, err error) {
 
 	ts := r.Header.Get("CSRF-Token")
@@ -70,11 +70,12 @@ func CheckCSRFRequest(r *http.Request) (ok bool, err error) {
 
 }
 
-// Verifies an asymmetric JWT signature.
+// Verifies an asymmetric JWT signature. We only keep the public keys.
 //
 // This is always suggested to be present for API requests,
 // and required for all API requests that change data,
 // unless API-Key or CSRF is supplied instead.
+//TODO(kkz): implement this.
 func CheckSignedRequest(r *http.Request) (ok bool, err error) {
 	return false, nil
 }
