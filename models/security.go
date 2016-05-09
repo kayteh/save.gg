@@ -8,6 +8,10 @@ import (
 	//"time"
 )
 
+// Check API keys in the store for equality to the API-Key header, and applies a rate-limiting function.
+//
+// This is *heavily* rate-limited, and only suitable for light usage and development.
+// Ideally, 3 should be allowed per minute, and this should never be accepted for authentication.
 //TODO(kkz): implement API keys
 func CheckAPIKeyRequest(r *http.Request) (ok bool, err error) {
 	if r.Header.Get("API-Key") == "testkey" {
@@ -17,6 +21,10 @@ func CheckAPIKeyRequest(r *http.Request) (ok bool, err error) {
 	return false, nil
 }
 
+// Check CSRF header for a Session ID and Origin, and tests if they are valid.
+//
+// This is computed on the frontend renderer,
+// although *Session.GenerateCSRFToken can do it on this side of the app.
 func CheckCSRFRequest(r *http.Request) (ok bool, err error) {
 
 	ts := r.Header.Get("CSRF-Token")
@@ -62,6 +70,11 @@ func CheckCSRFRequest(r *http.Request) (ok bool, err error) {
 
 }
 
+// Verifies an asymmetric JWT signature.
+//
+// This is always suggested to be present for API requests,
+// and required for all API requests that change data,
+// unless API-Key or CSRF is supplied instead.
 func CheckSignedRequest(r *http.Request) (ok bool, err error) {
 	return false, nil
 }

@@ -18,6 +18,7 @@ type Session struct {
 	User       *User
 
 	userAttached bool
+	token        string
 }
 
 // Retrieve a session based on the JWT token stored in either
@@ -64,6 +65,7 @@ func SessionFromRequest(req *http.Request) (s *Session, err error) {
 
 }
 
+// Finds a session by it's ID.
 func SessionByID(id string) (*Session, error) {
 
 	session := &Session{}
@@ -89,12 +91,14 @@ func SessionByID(id string) (*Session, error) {
 
 }
 
+// Checks if a session ID exists. This is a lot less expensive than getting the entire session.
 func SessionExists(id string) (bool, error) {
 	var val int
 	err := db.QueryRow("SELECT count(1) as count FROM sessions WHERE session_id = $1", id).Scan(&val)
 	return val > 0, err
 }
 
+// Create a new session. This commits the session to the database.
 func NewSession(key string) (s *Session, err error) {
 
 	s = &Session{}
@@ -122,15 +126,23 @@ func NewSession(key string) (s *Session, err error) {
 	return s, err
 }
 
+// Computes a session JWT token. This will only compute once, so is safe to call multiple times.
+//
+// Note that the token is not stateful. It only contains claims to be verified elsewhere.
 func (s *Session) Token() (t string, err error) {
+	if s.token != "" {
+		return t, nil
+	}
+
 	token := jwt.New(jwt.GetSigningMethod("HS256"))
 	token.Claims["session_id"] = s.SessionID
 
 	t, err = token.SignedString([]byte(meta.App.Conf.Self.SigningKey))
-
+	s.token = t
 	return t, err
 }
 
+// Sets the token to HTTP cookie.
 func (s *Session) SetCookie(w http.ResponseWriter) {
 	t, _ := s.Token()
 
@@ -157,20 +169,24 @@ func (s *Session) AttachUser() (err error) {
 	return err
 }
 
+// Wrapper to DestroySessionsByKey using this session's key.
 func (s *Session) DestroyKey() error {
 	return DestroySessionsByKey(s.SessionKey)
 }
 
+// Destroy this specific session.
 func (s *Session) Destroy() error {
 	_, err := db.NamedExec(`DELETE FROM sessions WHERE session_id = :session_id LIMIT 1`, s)
 	return err
 }
 
+// Destroy all sessions by a key. This is useful for password changes or.. anything else, really.
 func DestroySessionsByKey(key string) (err error) {
 	_, err = db.Exec(`DELETE FROM sessions WHERE session_key = $1`, key)
 	return err
 }
 
+// Parse the input string as a Bearer schema. That just means stripping the "Bearer " part, but.. hey.
 func getTokenFromHeader(h string) string {
 	if h == "" {
 		return ""
@@ -183,6 +199,7 @@ func getTokenFromHeader(h string) string {
 	return ""
 }
 
+// Generate a UUIDv4
 func generateKey() string {
 	return uuid.NewV4().String()
 }
