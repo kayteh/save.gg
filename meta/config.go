@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+const (
+	CSRFOff = iota
+	CSRFLoose
+	CSRFStrict
+)
+
 // Resolves the configuration location from various sources.
 //TODO(kkz): Actually implement this properly
 func ResolveConfigLocation() string {
@@ -99,6 +105,7 @@ type Config struct {
 	Self       selfConfig
 	Validation validationConfig
 	Webserver  webserverConfig
+	CSRF       csrfConfig
 }
 
 type cacheConfig struct {
@@ -114,6 +121,11 @@ type cacheConfig struct {
 	Redis struct {
 		Addr string
 	}
+}
+
+type csrfConfig struct {
+	Mode       int
+	SigningKey string `toml:signing_key`
 }
 
 type devserverConfig struct {

@@ -20,11 +20,25 @@ type Session struct {
 	userAttached bool
 }
 
+// Retrieve a session based on the JWT token stored in either
+// the Authorization: Bearer header, or the session cookie.
 func SessionFromRequest(req *http.Request) (s *Session, err error) {
 	ts := getTokenFromHeader(req.Header.Get("Authorization"))
 
 	if ts == "" {
-		meta.App.Log.Warn("session not found")
+		c, err := req.Cookie(meta.App.Conf.Self.SessionCookie)
+		if err != nil && err != http.ErrNoCookie {
+			meta.App.Log.WithError(err).Warn("cookie fetch error")
+			return nil, errors.SessionNotFound
+		}
+
+		if err != http.ErrNoCookie {
+			ts = c.Value
+		}
+	}
+
+	if ts == "" {
+		//meta.App.Log.Warn("session not found")
 		return nil, errors.SessionNotFound
 	}
 
@@ -75,6 +89,12 @@ func SessionByID(id string) (*Session, error) {
 
 }
 
+func SessionExists(id string) (bool, error) {
+	var val int
+	err := db.QueryRow("SELECT count(1) as count FROM sessions WHERE session_id = $1", id).Scan(&val)
+	return val > 0, err
+}
+
 func NewSession(key string) (s *Session, err error) {
 
 	s = &Session{}
@@ -111,6 +131,21 @@ func (s *Session) Token() (t string, err error) {
 	return t, err
 }
 
+func (s *Session) SetCookie(w http.ResponseWriter) {
+	t, _ := s.Token()
+
+	cookie := &http.Cookie{
+		Name:     meta.App.Conf.Self.SessionCookie,
+		Value:    t,
+		HttpOnly: true,
+		Secure:   true,
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
+	}
+
+	http.SetCookie(w, cookie)
+}
+
+// Attaches the user to the session. This can be called multiple times with no side effects.
 func (s *Session) AttachUser() (err error) {
 	if s.userAttached {
 		return nil

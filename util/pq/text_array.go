@@ -50,7 +50,7 @@ func (s *TextArray) Scan(value interface{}) (err error) {
 // TextArray.Value in particular converts the []string by joining it, separated by `,`,
 // and wrapping it in `{}`, which is exactly as Postgres expects.
 func (s *TextArray) Value() (o driver.Value, err error) {
-	return fmt.Sprintf("{%s}", strings.Join(s.data, ",")), nil
+	return fmt.Sprintf("{%s}", strings.Join(s.Copy(), ",")), nil
 }
 
 // Appends a new string to the underlying []string.
@@ -90,7 +90,9 @@ func (s *TextArray) Remove(v string) {
 func (s *TextArray) Copy() []string {
 	var o []string
 
-	copy(s.data, o)
+	if len(s.data) > 0 {
+		copy(s.data, o)
+	}
 
 	return o
 }

@@ -30,10 +30,8 @@ func Register(ctx *cli.Context) {
 	}
 
 	// Create user
-	u := m.User{
-		Email:     email,
-		Activated: true,
-	}
+	u := m.NewUser()
+	u.Activated = true
 
 	err := u.CreateSecret(password)
 	if err != nil {
@@ -43,6 +41,11 @@ func Register(ctx *cli.Context) {
 	err = u.SetUsername(username)
 	if err != nil {
 		log.WithError(err).Fatal("Username error")
+	}
+
+	err = u.SetEmail(email)
+	if err != nil {
+		log.WithError(err).Fatal("Email error")
 	}
 
 	if admin {

@@ -25,4 +25,9 @@ var (
 	// models/session
 	SessionTokenInvalid = errors.New("sgg: token invalid")
 	SessionNotFound     = errors.New("sgg: session not found")
+
+	// models/security
+	CSRFTokenInvalid   = errors.New("sgg: csrf token invalid")
+	CSRFOriginMismatch = errors.New("sgg: csrf origin mismatch")
+	CSRFSessionInvalid = errors.New("sgg: csrf session invalid")
 )

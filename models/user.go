@@ -25,6 +25,9 @@ const (
 	UserACLAtmosphere = "dev:atmos"
 	UserACLMomentum   = "dev:m6m"
 	UserACLSupernova  = "dev:nova"
+
+	//TODO(kkz): Consider moving this somewhere that it could be auto-generated per environment.
+	passwordNonce = "4E0933FAAF9UAddQCEKwl3CSPgXoR12bIUmR5Gq6QODPHLc6jGBbFVLG5DWl7dzwbxNluVdKh4G1rEmNefh5uL52YBeEfZzp"
 )
 
 const (
@@ -64,9 +67,6 @@ type User struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	DeletedAt time.Time `json:"-" db:"deleted_at"`
-
-	// Joined data
-	Saves []Save `json:"saves,omitempty"`
 
 	// Metadata
 	presentable bool
@@ -129,6 +129,12 @@ func userQuery(userPtr *User, constraint, value string) error {
 	WHERE deleted_at IS NULL 
 		AND `+constraint+` = $1 
 	LIMIT 1`, value)
+}
+
+func NewUser() *User {
+	return &User{
+		ACL: &pq.TextArray{},
+	}
 }
 
 // Strips secret or un-needed values out of public-facing, or presented, data.
@@ -301,7 +307,7 @@ func (u *User) CreateSession() (s *Session, err error) {
 
 // Test a hashed secret/password for correctness.
 func (u *User) CheckSecret(password string) (o bool, err error) {
-	err = bcrypt.CompareHashAndPassword([]byte(u.Secret), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(u.Secret), []byte(password+passwordNonce))
 
 	if err == bcrypt.ErrMismatchedHashAndPassword {
 		return false, nil
@@ -321,7 +327,7 @@ func (u *User) CreateSecret(password string) (err error) {
 		return err
 	}
 
-	s, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	s, err := bcrypt.GenerateFromPassword([]byte(password+passwordNonce), 14)
 
 	if err != nil {
 		return err

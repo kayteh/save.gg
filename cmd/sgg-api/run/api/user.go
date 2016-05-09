@@ -4,6 +4,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 
+	mw "save.gg/sgg/cmd/sgg-api/run/middleware"
 	"save.gg/sgg/meta"
 	m "save.gg/sgg/models"
 	"save.gg/sgg/util/errors"
@@ -11,8 +12,8 @@ import (
 )
 
 func init() {
-	meta.RegisterRoute("GET", "/api/user/:slug", getUser)
-	meta.RegisterRoute("PATCH", "/api/user/:slug", patchUser)
+	meta.RegisterRoute("GET", "/api/user/:slug", mw.SC(getUser))
+	meta.RegisterRoute("PATCH", "/api/user/:slug", mw.RequireSession(patchUser, &mw.SecurityFlags{All: true}))
 }
 
 // GET /api/user/~
@@ -68,13 +69,8 @@ func getUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 }
 
 // PATCH /api/user/:slug
-func patchUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	s, err := m.SessionFromRequest(r)
-	if err == errors.SessionNotFound || err == errors.SessionTokenInvalid {
-		util.Forbidden(w)
-		return
-	}
-
+func patchUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params, s *m.Session) {
+	var err error
 	slug := ps.ByName("slug")
 
 	var u *m.User
@@ -113,10 +109,39 @@ func patchUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	err = u.Patch(i)
-	//TODO(kkz): handle specific problems here, e.g. specify what input is bad
 	if err != nil {
-		meta.App.Log.WithError(err).Error("user patch problem")
+
+		switch err {
+		case errors.UserEmailInvalid:
+			w.WriteHeader(400)
+			w.Write([]byte(`{"err":"email invalid"}`))
+		case errors.UserPasswordTooShort:
+			w.WriteHeader(400)
+			w.Write([]byte(`{"err":"password too short"}`))
+		case errors.UsernameInvalid:
+			w.WriteHeader(400)
+			w.Write([]byte(`{"err":"username invalid"}`))
+		case errors.UsernameTaken:
+			w.WriteHeader(409)
+			w.Write([]byte(`{"err":"username taken"}`))
+		case errors.UsernameTooLong:
+			w.WriteHeader(400)
+			w.Write([]byte(`{"err":"username too long"}`))
+		case errors.UsernameDisallowed:
+			w.WriteHeader(400)
+			w.Write([]byte(`{"err":"username disallowed"}`))
+		default:
+			meta.App.Log.WithError(err).Error("user patch problem")
+			util.InternalServerError(w, err)
+		}
+		return
+	}
+
+	err = u.Save()
+	if err != nil {
+		meta.App.Log.WithError(err).Error("user save problem")
 		util.InternalServerError(w, err)
+		return
 	}
 
 	util.NoContent(w)

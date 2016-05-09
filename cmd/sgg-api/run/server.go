@@ -67,6 +67,13 @@ func (hw handlerWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ww := &responseWriterWrapper{ow: w, code: 200}
 
+	if meta.App.Env == "production" {
+		ww.Header().Add("Content-Security-Policy", "default-src: 'self'; script-src: 'self' x.svgg.xyz")
+		ww.Header().Add("Strict-Transport-Security", "max-age=31536000")
+	} else {
+		ww.Header().Add("SGG-Message", "not production!")
+	}
+
 	hw.Router.ServeHTTP(ww, r)
 
 	time := time.Since(ts)
