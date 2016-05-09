@@ -1,3 +1,3 @@
-DROP TABLE users, saves, save_entities, comments, sessions CASCADE;
+DROP TABLE users, sessions CASCADE;
 
 DROP TYPE markdown;
