@@ -20,9 +20,9 @@ import (
 type SecurityFlags struct {
 	// Individual flags
 	CSRF     bool
-	Signed   bool //unused
-	APIKey   bool //unused
-	Internal bool //unused
+	Signed   bool
+	APIKey   bool
+	Internal bool // a.k.a. Universe
 
 	// Security package aliases
 	// (only set one of these at a time, they don't play well together)
