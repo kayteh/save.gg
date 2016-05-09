@@ -1,0 +1,4 @@
+[influx]
+addr = "http://localhost:8086"
+user = "sgg"
+pass = "19216801"

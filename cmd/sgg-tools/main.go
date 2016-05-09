@@ -48,6 +48,20 @@ func main() {
 					Name:   "down",
 					Action: migrate.Down,
 				},
+				{
+					Name:   "rethink",
+					Action: migrate.Rethink,
+					Flags: []cli.Flag{
+						cli.BoolFlag{Name: "reset,r"},
+					},
+				},
+				{
+					Name:   "influx",
+					Action: migrate.Influx,
+					Flags: []cli.Flag{
+						cli.BoolFlag{Name: "reset,r"},
+					},
+				},
 			},
 		},
 		{

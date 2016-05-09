@@ -1,2 +1,0 @@
-[postgres]
-url = "postgres://sgg:19216801@localhost:5432/sgg?sslmode=disable"

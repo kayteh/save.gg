@@ -27,7 +27,7 @@ func Start() {
 
 	config := meta.App.Conf
 
-	meta.App.Log.Infof("sgg-api is now serving on https://%s...", config.DevServer.Addr)
+	meta.App.Log.Infof("sgg-api is now serving on https://%s...", config.Webserver.Addr)
 
 	if meta.App.Env == "local" {
 		meta.App.Log.Info("Happy coding!~")
@@ -35,7 +35,7 @@ func Start() {
 
 	hw := handlerWrapper{Router: r}
 
-	http.ListenAndServeTLS(config.DevServer.Addr, config.Webserver.TLS.Cert, config.Webserver.TLS.Private, hw)
+	http.ListenAndServeTLS(config.Webserver.Addr, config.Webserver.TLS.Cert, config.Webserver.TLS.Private, hw)
 
 }
 

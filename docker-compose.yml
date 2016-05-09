@@ -2,7 +2,7 @@ version: '2'
 services:
     
     pg:
-        image: postgres
+        image: postgres:9.5
         container_name: sgg-dev-pg
         ports:
             - "5432:5432"
@@ -13,20 +13,20 @@ services:
             POSTGRES_INITDB_ARGS: -A trust
     
     redis:
-        image: redis
+        image: redis:3-alpine
         container_name: sgg-dev-redis
         ports:
             - "6379:6379"
 
     rethink:
-        image: rethinkdb
+        image: rethinkdb:2
         container_name: sgg-dev-rethink
         ports:
             - "8080:8080"
             - "28015:28015"
 
     influxdb:
-        image: tutum/influxdb
+        image: tutum/influxdb:0.12
         container_name: sgg-dev-influx
         ports:
             - "8083:8083"

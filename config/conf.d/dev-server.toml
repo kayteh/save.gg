@@ -1,6 +1,0 @@
-[dev-server]
-addr = "127.0.0.1:3052"
-
-[webserver.tls]
-cert = "./config/ssl/dev.crt"
-private = "./config/ssl/dev.key"

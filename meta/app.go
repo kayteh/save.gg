@@ -12,17 +12,22 @@
 package meta
 
 import (
-	_ "database/sql"
 	log "github.com/Sirupsen/logrus"
+	influx "github.com/influxdata/influxdb/client/v2"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	redis "github.com/mediocregopher/radix.v2/pool"
+	r "gopkg.in/dancannon/gorethink.v2"
 )
 
 // Structure for core app data like configuration, a logger, and anything pertinent to any part of the app.
 // Data services should be placed here at risk of not existing when you actually want to use them.
 type Application struct {
-	Conf Config
-	Log  *log.Entry
+	Conf    Config
+	Log     *log.Entry
+	Influx  influx.Client
+	Rethink *r.Session
+	Redis   *redis.Pool
 
 	Env string
 }
@@ -43,14 +48,63 @@ func SetupApp() (*Application, error) {
 
 	a.Env = a.Conf.Self.Env
 
+	var err error
+	a.Influx, err = a.GetInflux()
+	if err != nil {
+		return nil, err
+	}
+
+	a.Rethink, err = a.GetRethink()
+	if err != nil {
+		return nil, err
+	}
+
+	a.Redis, err = a.GetRedis()
+	if err != nil {
+		return nil, err
+	}
+
 	return &a, nil
 }
 
-// Returns a postgres sqlx connection. This is goroutine-safe, but make sure you mount this
-// to models.PrepModels at app setup time to be very sure.
+// Returns a postgres sqlx connection. This is sort-of goroutine-safe.
+// It needs to be mounted manually, but will work find after that.
+// See models.PrepModels().
 func (a Application) GetPq() (db *sqlx.DB, err error) {
 	db, err = sqlx.Connect("postgres", a.Conf.Postgres.URL)
 
 	return db, err
+
+}
+
+// Returns an InfluxDB connection. This is goroutine-safe.
+func (a Application) GetInflux() (i influx.Client, err error) {
+	i, err = influx.NewHTTPClient(influx.HTTPConfig{
+		Addr:     a.Conf.Influx.Addr,
+		Username: a.Conf.Influx.User,
+		Password: a.Conf.Influx.Pass,
+	})
+
+	return i, err
+}
+
+// Returns a RethinkDB session. This is goroutine-safe.
+func (a Application) GetRethink() (*r.Session, error) {
+	var s *r.Session
+	var err error
+
+	s, err = r.Connect(r.ConnectOpts{
+		Address: a.Conf.Rethink.Addr,
+	})
+
+	return s, err
+}
+
+// Returns a Redis session. This is goroutine-safe.
+func (a Application) GetRedis() (*redis.Pool, error) {
+
+	p, err := redis.New("tcp", a.Conf.Redis.Addr, 10)
+
+	return p, err
 
 }

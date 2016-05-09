@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"time"
+	//"time"
 )
 
 const (
@@ -96,40 +96,22 @@ func NewConfig(path string) (conf Config) {
 }
 
 // Configuration structure. Keep this in alphabetical order.
-//TODO(kkz): consolidate and cleanup
 type Config struct {
-	Cache      cacheConfig
-	DevServer  devserverConfig `toml:"dev-server"`
+	Influx     influxConfig
 	NATS       natsConfig
 	Postgres   pgConfig
+	Redis      redisConfig
+	Rethink    rethinkConfig
 	Security   securityConfig
 	Self       selfConfig
 	Validation validationConfig
 	Webserver  webserverConfig
 }
 
-type cacheConfig struct {
-	Backend string
-
-	TTL struct {
-		Comment time.Duration
-		User    time.Duration
-		Save    time.Duration
-		Session time.Duration
-	}
-
-	Redis struct {
-		Addr string
-	}
-}
-
-type csrfConfig struct {
-	Mode       int
-	SigningKey string `toml:signing_key`
-}
-
-type devserverConfig struct {
+type influxConfig struct {
 	Addr string
+	User string
+	Pass string
 }
 
 type natsConfig struct {
@@ -138,6 +120,14 @@ type natsConfig struct {
 
 type pgConfig struct {
 	URL string
+}
+
+type redisConfig struct {
+	Addr string
+}
+
+type rethinkConfig struct {
+	Addr string
 }
 
 type securityConfig struct {
@@ -152,7 +142,6 @@ type selfConfig struct {
 	Env           string
 	Revision      string
 	SessionCookie string `toml:"session_cookies"`
-	SigningKey    string `toml:"signing_key"`
 }
 
 type validationConfig struct {
@@ -162,7 +151,8 @@ type validationConfig struct {
 }
 
 type webserverConfig struct {
-	TLS struct {
+	Addr string
+	TLS  struct {
 		Cert    string
 		Private string
 	}
