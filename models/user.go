@@ -352,7 +352,7 @@ func (u *User) Touch() {
 		return
 	}
 
-	r := redis.Cmd("SET", "user:"+du.Slug, b, "EX", "86400")
+	r := redis.Cmd("SET", "user:"+du.Slug, b, "EX", "600")
 	if r.Err != nil {
 		meta.App.Log.WithError(err).WithField("user id", u.ID).Error("cache save error")
 	}

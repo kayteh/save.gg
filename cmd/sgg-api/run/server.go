@@ -18,17 +18,11 @@ func Start() {
 	r := httprouter.New()
 	meta.MountRouter(r)
 
-	pq, err := meta.App.GetPq()
+	c, err := models.ConnectorFromApp(meta.App)
 	if err != nil {
-		meta.App.Log.WithError(err).Fatalln("Database failed")
+		log.WithError(err).Fatal("connector creation error")
 	}
-
-	redis, err := meta.App.GetRedis()
-	if err != nil {
-		meta.App.Log.WithError(err).Fatalln("Redis failed")
-	}
-
-	models.PrepModels(pq, redis)
+	models.PrepModels(c)
 
 	config := meta.App.Conf
 
@@ -83,7 +77,7 @@ func (hw handlerWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	time := time.Since(ts)
 
-	logEvent(r, ww, time)
+	go logEvent(r, ww, time)
 }
 
 func logEvent(r *http.Request, ww *responseWriterWrapper, d time.Duration) {
@@ -98,6 +92,6 @@ func logEvent(r *http.Request, ww *responseWriterWrapper, d time.Duration) {
 		"accept": r.Header.Get("Accept"),
 	}).Infof("%d %s", ww.code, r.RequestURI)
 
-	// todo output to influxdb
+	//models.PushHTTPLog(r, ww, d)
 
 }

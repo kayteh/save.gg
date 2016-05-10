@@ -48,17 +48,6 @@ func SetupApp() (*Application, error) {
 
 	a.Env = a.Conf.Self.Env
 
-	var err error
-	a.Influx, err = a.GetInflux()
-	if err != nil {
-		return nil, err
-	}
-
-	a.Rethink, err = a.GetRethink()
-	if err != nil {
-		return nil, err
-	}
-
 	return &a, nil
 }
 

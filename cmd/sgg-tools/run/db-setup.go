@@ -13,15 +13,12 @@ func SetupDB() {
 	}
 
 	a.App = app
-	pq, err := app.GetPq()
+
+	c, err := m.ConnectorFromApp(app)
 	if err != nil {
-		log.WithError(err).Fatal("DB initialization failed.")
+		log.WithError(err).Fatal("connector creation error")
 	}
 
-	redis, err := app.GetRedis()
-	if err != nil {
-		log.WithError(err).Fatal("Redis initialization failed.")
-	}
-	m.PrepModels(pq, redis)
+	m.PrepModels(c)
 
 }
