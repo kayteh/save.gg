@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"strings"
 )
 
@@ -99,15 +100,7 @@ func (s *TextArray) Copy() []string {
 
 // Modification of Scan to de-JSON-ify JSON.
 //TODO(kkz): Properly implement this
-func (s *TextArray) UnmarshalJSON(value interface{}) error {
-	var b []byte
-
-	switch value.(type) {
-	case []byte:
-		b = value.([]byte)
-	default:
-		return ErrTypeMismatch
-	}
+func (s *TextArray) UnmarshalJSON(b []byte) error {
 
 	if len(b) <= 2 {
 		return nil
