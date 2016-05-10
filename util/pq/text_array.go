@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"strings"
 )
 
