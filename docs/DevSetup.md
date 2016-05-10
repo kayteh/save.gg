@@ -40,4 +40,7 @@ go install -v ./...
 sgg-tools migrate
 sgg-tools migrate influx
 sgg-tools migrate rethink
+
+# Create first user
+sgg-tools debug-user register -a
 ```
