@@ -9,6 +9,10 @@
 //
 // This package also manages the side-effect HTTP router in `MountRouter` and
 // `RegisterRoute`. Usage on this can be found at their specific documentation.
+//
+// This package can *never* import any save.gg/sgg packages. Period.
+// Doing so will cause build failures unless that package in only imported by
+// this package.
 package meta
 
 import (
