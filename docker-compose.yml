@@ -6,6 +6,8 @@ services:
         container_name: sgg-dev-pg
         ports:
             - "5432:5432"
+        volumes:
+            - ".data/pg:/var/lib/postresql/data"
         environment:
             POSTGRES_PASSWORD: 19216801
             POSTGRES_DB: sgg
@@ -17,6 +19,8 @@ services:
         container_name: sgg-dev-redis
         ports:
             - "6379:6379"
+        volumes:
+            - ".data/redis:/data"
 
     rethink:
         image: rethinkdb:2
@@ -24,6 +28,8 @@ services:
         ports:
             - "8080:8080"
             - "28015:28015"
+        volumes:
+            - ".data/r:/data"
 
     influxdb:
         image: tutum/influxdb:0.12
@@ -31,9 +37,12 @@ services:
         ports:
             - "8083:8083"
             - "8086:8086"
+        volumes:
+            - ".data/i:/data"
 
     nats:
         image: nats
         container_name: sgg-dev-nats
         ports:
             - "4222:4222"
+            - "8222:8222"
