@@ -9,6 +9,9 @@ import (
 
 var (
 
+	// generic
+	CacheMiss = errors.New("sgg: cache miss")
+
 	// models/user
 	UserAuthBadHandle    = errors.New("sgg: bad username/email")
 	UserAuthBadPassword  = errors.New("sgg: bad password")

@@ -23,7 +23,12 @@ func Start() {
 		meta.App.Log.WithError(err).Fatalln("Database failed")
 	}
 
-	models.PrepModels(pq)
+	redis, err := meta.App.GetRedis()
+	if err != nil {
+		meta.App.Log.WithError(err).Fatalln("Redis failed")
+	}
+
+	models.PrepModels(pq, redis)
 
 	config := meta.App.Conf
 

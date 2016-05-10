@@ -59,11 +59,6 @@ func SetupApp() (*Application, error) {
 		return nil, err
 	}
 
-	a.Redis, err = a.GetRedis()
-	if err != nil {
-		return nil, err
-	}
-
 	return &a, nil
 }
 
@@ -105,6 +100,15 @@ func (a Application) GetRedis() (*redis.Pool, error) {
 
 	p, err := redis.New("tcp", a.Conf.Redis.Addr, 10)
 
-	return p, err
+	if err != nil {
+		return nil, err
+	}
+
+	r := p.Cmd("PING")
+	if r.Err != nil {
+		return nil, err
+	}
+
+	return p, nil
 
 }

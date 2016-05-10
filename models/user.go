@@ -2,6 +2,8 @@ package models
 
 import (
 	"database/sql"
+	"encoding/json"
+	radix "github.com/mediocregopher/radix.v2/redis"
 	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
@@ -77,10 +79,25 @@ func UserBySlug(slug string) (*User, error) {
 
 	user := &User{}
 
-	err := userQuery(user, "slug", slug)
+	cacheOk, err := userCachedBySlug(user, slug)
+	if cacheOk {
+		return user, nil
+	}
+
+	if err != nil && err != errors.CacheMiss {
+		return nil, err
+	}
+
+	err = userQuery(user, "slug", slug)
 
 	if err == sql.ErrNoRows {
 		return nil, errors.UserNotFound
+	}
+
+	// if everything's ok to this point,
+	// let's touch the missing user in a goroutine.
+	if !cacheOk {
+		go user.Touch()
 	}
 
 	return user, err
@@ -131,6 +148,34 @@ func userQuery(userPtr *User, constraint, value string) error {
 	LIMIT 1`, value)
 }
 
+// Try to get a user from the cache. If it's missing
+func userCachedBySlug(userPtr *User, slug string) (ok bool, err error) {
+
+	r := redis.Cmd("GET", "user:"+slug)
+	if r.Err != nil {
+		return false, err
+	}
+
+	if r.IsType(radix.Nil) {
+		return false, errors.CacheMiss
+	}
+
+	b, err := r.Bytes()
+	if err != nil {
+		return false, err
+	}
+
+	err = json.Unmarshal(b, userPtr)
+	if err != nil {
+		return false, err
+	}
+
+	meta.App.Log.Info("cache hit")
+
+	return true, nil
+}
+
+// Create a new user object that can be prefilled properly. For Scanning, a bare *User is fine.
 func NewUser() *User {
 	return &User{
 		ACL: &pq.TextArray{},
@@ -246,6 +291,8 @@ func (u *User) Save() (err error) {
 		WHERE user_id=:user_id
 	`, &u)
 
+	go u.Touch()
+
 	return err
 }
 
@@ -283,6 +330,37 @@ func (u *User) Delete() (err error) {
 func (u *User) Purge() (err error) {
 	_, err = db.Exec(`DELETE FROM users WHERE user_id = $1 LIMIT 1`, u.ID)
 	return err
+}
+
+// Caches the user into the cache, as opposed to a box.
+func (u *User) Touch() {
+	if u.presentable == true {
+		meta.App.Log.WithField("user id", u.ID).Error("attempted touch of presentable user")
+		return
+	}
+
+	du := &User{}
+	err := userQuery(du, "user_id", u.ID)
+	if err != nil {
+		meta.App.Log.WithError(err).WithField("user id", u.ID).Error("fetch error")
+		return
+	}
+
+	b, err := json.Marshal(du)
+	if err != nil {
+		meta.App.Log.WithError(err).WithField("user id", u.ID).Error("cache encode error")
+		return
+	}
+
+	r := redis.Cmd("SET", "user:"+du.Slug, b, "EX", "86400")
+	if r.Err != nil {
+		meta.App.Log.WithError(err).WithField("user id", u.ID).Error("cache save error")
+	}
+}
+
+// Removes a user from the cache (usually so it can be re-cached due to slug change.)
+func (u *User) Uncache() {
+	redis.Cmd("DEL", "user:"+u.Slug)
 }
 
 // Creates a new Session for the user.
@@ -367,6 +445,8 @@ func (u *User) SetUsername(username string) (err error) {
 	if err == nil && cu != nil {
 		return errors.UsernameTaken
 	}
+
+	u.Uncache()
 
 	u.Username = username
 	u.Slug = s

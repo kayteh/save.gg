@@ -17,6 +17,11 @@ func SetupDB() {
 	if err != nil {
 		log.WithError(err).Fatal("DB initialization failed.")
 	}
-	m.PrepModels(pq)
+
+	redis, err := app.GetRedis()
+	if err != nil {
+		log.WithError(err).Fatal("Redis initialization failed.")
+	}
+	m.PrepModels(pq, redis)
 
 }

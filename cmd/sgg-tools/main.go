@@ -65,11 +65,6 @@ func main() {
 			},
 		},
 		{
-			Name:  "touch",
-			Usage: "Touches a model.",
-			//Action: touch.CliStart(),
-		},
-		{
 			Name:  "debug-user",
 			Usage: "debug user-related things",
 			Subcommands: []cli.Command{
@@ -91,6 +86,10 @@ func main() {
 						cli.StringFlag{Name: "username, u"},
 						cli.BoolFlag{Name: "token, t"},
 					},
+				},
+				{
+					Name:   "touch",
+					Action: debugUser.Touch,
 				},
 			},
 		},
