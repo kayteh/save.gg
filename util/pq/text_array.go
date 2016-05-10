@@ -8,6 +8,8 @@ import (
 )
 
 // A text array, identified by Postgres as text[].
+//
+// Implements the json Marshaller, Unmarshaller, and sql Scanner/Value interface.
 type TextArray struct {
 	data []string
 }
@@ -98,7 +100,6 @@ func (s *TextArray) Copy() []string {
 }
 
 // Modification of Scan to de-JSON-ify JSON.
-//TODO(kkz): Properly implement this
 func (s *TextArray) UnmarshalJSON(b []byte) error {
 
 	if len(b) <= 2 {
