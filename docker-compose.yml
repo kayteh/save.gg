@@ -42,7 +42,7 @@ services:
             - ".data/i:/data"
 
     nats:
-        image: nats
+        image: nats:0.8.0
         container_name: sgg-dev-nats
         ports:
             - "4222:4222"

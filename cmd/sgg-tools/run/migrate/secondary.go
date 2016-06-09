@@ -54,6 +54,12 @@ func Rethink(ctx *cli.Context) {
 	r.Table("rate_limits").IndexCreate("key").RunWrite(s)
 	log.Info("create index for `key` on table `rate_limits`")
 
+	r.TableCreate("save_url_index").RunWrite(s)
+	log.Info("create table `save_url_index`")
+
+	r.Table("save_url_index").IndexCreate("url").RunWrite(s)
+	log.Info("create index for `url` on table `save_url_index`")
+
 }
 
 // Setup InfluxDB. This implies you're running influxdb in dev, so it'll connect with root:root.
