@@ -4,19 +4,14 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 
-	mw "save.gg/sgg/cmd/sgg-api/run/middleware"
+	// mw "save.gg/sgg/cmd/sgg-api/run/middleware"
 	"save.gg/sgg/meta"
 	m "save.gg/sgg/models"
 	"save.gg/sgg/util/errors"
 	util "save.gg/sgg/util/httputil"
 )
 
-func init() {
-	meta.RegisterRoute("GET", "/api/user/:slug", mw.SC(getUser))
-	meta.RegisterRoute("PATCH", "/api/user/:slug", mw.RequireSession(patchUser, &mw.SecurityFlags{All: true}))
-}
-
-// GET /api/user/~
+// ! GET /api/user/~
 func getUserSelf(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	s, err := m.SessionFromRequest(r)
 	if err == errors.SessionNotFound || err == errors.SessionTokenInvalid {
@@ -41,7 +36,8 @@ func getUserSelf(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 }
 
-// GET /api/user/:slug
+// GET /api/user/:slug v1
+// SC
 func getUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	slug := ps.ByName("slug")
@@ -68,7 +64,8 @@ func getUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 }
 
-// PATCH /api/user/:slug
+// PATCH /api/user/:slug v1
+// RequireSession(All)
 func patchUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params, s *m.Session) {
 	var err error
 	slug := ps.ByName("slug")

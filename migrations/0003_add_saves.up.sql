@@ -14,3 +14,7 @@ CREATE TABLE saves (
     file_entity_id  uuid        UNIQUE NOT NULL
 
 );
+
+CREATE TABLE save_file_entities (
+    
+);

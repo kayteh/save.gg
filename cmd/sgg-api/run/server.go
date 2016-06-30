@@ -13,6 +13,7 @@ import (
 )
 
 func Start() {
+	meta.App.Log.Info("Save.gg :: Version: " + meta.Version)
 	meta.App.Log.Info("Starting api server...")
 
 	r := httprouter.New()

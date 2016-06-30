@@ -28,6 +28,30 @@
 			"revisionTime": "2016-03-26T15:39:47-07:00"
 		},
 		{
+			"checksumSHA1": "sqqwf1c9kvnvGbH20hcOXBFu248=",
+			"path": "github.com/dancannon/gorethink",
+			"revision": "ef48c048b4f1f4d923de4197e78c1b206c14fa4c",
+			"revisionTime": "2016-03-15T21:01:06Z"
+		},
+		{
+			"checksumSHA1": "j6hgr0e8A9mX7/3vubxpve05FpY=",
+			"path": "github.com/dancannon/gorethink/encoding",
+			"revision": "ef48c048b4f1f4d923de4197e78c1b206c14fa4c",
+			"revisionTime": "2016-03-15T21:01:06Z"
+		},
+		{
+			"checksumSHA1": "cvdGWKTSukJFncq3khnb2iWYboc=",
+			"path": "github.com/dancannon/gorethink/ql2",
+			"revision": "ef48c048b4f1f4d923de4197e78c1b206c14fa4c",
+			"revisionTime": "2016-03-15T21:01:06Z"
+		},
+		{
+			"checksumSHA1": "p8caZhJVRmenuxaEHJ1UDXV3ZBc=",
+			"path": "github.com/dancannon/gorethink/types",
+			"revision": "ef48c048b4f1f4d923de4197e78c1b206c14fa4c",
+			"revisionTime": "2016-03-15T21:01:06Z"
+		},
+		{
 			"checksumSHA1": "FczzogSoZcKU3h21tCUyHzMsnBY=",
 			"origin": "gopkg.in/dancannon/gorethink.v2/vendor/github.com/golang/protobuf/proto",
 			"path": "github.com/golang/protobuf/proto",
@@ -142,6 +166,26 @@
 			"path": "github.com/mediocregopher/radix.v2/redis",
 			"revision": "74e50e64194d2d2f4836212451c28b127f9d7fa1",
 			"revisionTime": "2016-04-15T23:49:38Z"
+		},
+		{
+			"checksumSHA1": "EBL3BHfTPFlncHu/1Jl7FVqTq/U=",
+			"path": "github.com/nats-io/nats",
+			"revision": "6f8a5734602782ce3ab3874b474a1b215acc7ed8",
+			"revisionTime": "2016-04-28T10:54:48Z"
+		},
+		{
+			"checksumSHA1": "qAIuHdtQrDi2fFmpaP1dZLbgpGc=",
+			"origin": "github.com/nats-io/nats/vendor/github.com/nats-io/nats/encoders/builtin",
+			"path": "github.com/nats-io/nats/encoders/builtin",
+			"revision": "6f8a5734602782ce3ab3874b474a1b215acc7ed8",
+			"revisionTime": "2016-04-28T10:54:48Z"
+		},
+		{
+			"checksumSHA1": "ygcfvmZEYdRM0DOhvZR+C/CBymg=",
+			"origin": "github.com/nats-io/nats/vendor/github.com/nats-io/nuid",
+			"path": "github.com/nats-io/nuid",
+			"revision": "6f8a5734602782ce3ab3874b474a1b215acc7ed8",
+			"revisionTime": "2016-04-28T10:54:48Z"
 		},
 		{
 			"checksumSHA1": "itDWaOxOe8M1GH0+YHfl37pNX1E=",

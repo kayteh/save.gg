@@ -3,6 +3,6 @@ vendor/*/*
 .DS_Store/
 frontend/node_modules/
 client/node_modules/
-./sgg-api
-./sgg-worker
-./sgg-tools
+sgg-api
+sgg-worker
+sgg-tools

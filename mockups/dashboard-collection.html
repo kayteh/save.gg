@@ -1,0 +1,328 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>My Collection - Save.gg</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="/shared/favicon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700' rel='stylesheet' type='text/css'>
+
+<style>
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+body {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-family: "Source Sans Pro", sans-serif;
+	background-color: #fbfafa;
+}
+
+.box {
+	margin: 10px;
+	background-color: rgba(251,250,250,0.8);
+	padding: 10px;
+}
+
+.test .box {
+	border: 2px solid #0f8;
+}
+
+img.circle {
+	border-radius: 100%;
+}
+
+button {
+	appearance: none;
+	padding: 0.4rem 0.5rem;
+	box-sizing: border-box;
+	font-size: 1rem;
+	background-color: #004fff;
+	color: #fff;
+	border: 2px solid transparent;
+	margin: 2px;
+	cursor: pointer;
+}
+
+button:hover {
+	outline: none;
+	background-color: #0066aa;
+}
+
+button:active {
+	outline: none;
+	background-color: #003366;
+}
+
+textarea:focus, button:focus, input:focus {
+	outline: none;
+}
+
+.button-green {
+	background-color: #00aa4f;
+}
+
+.button-neutral {
+	background-color: #383231;
+}
+
+.button-alt-neutral {
+	background-color: transparent;
+	border: 2px solid #383231;
+	color: #383231;
+}
+
+.button-alt-blue {
+	background-color: transparent;
+	border: 2px solid #0088ff;
+	color: #383231;
+}
+
+.button-alt-red {
+	background-color: transparent;
+	border: 2px solid #ff0000;
+	color: #383231;
+}
+
+.button-alt-orange {
+	background-color: transparent;
+	border: 2px solid #ff6d00;
+	color: #383231;
+}
+</style>
+
+<div class="container">
+
+<div class="header">
+	<style>
+		.header {
+			display: flex;
+			background: #000;
+			height: 60px;
+			padding: 10px;
+			background-color: #383231;
+			color: #fff;
+		}
+
+
+		.header--branding {
+			font-weight: 300;
+		}
+
+		.header--branding--text {
+			font-size: 35px;
+			bottom: 7px;
+			position: relative;
+			margin-left: 5px;
+		}
+
+		@media only screen and (max-width: 600px) {
+
+			.header--branding--text {
+				display: none;
+			}
+		}
+
+		.header--spacer {
+			flex: 1;
+		}
+
+		.header--inner {
+		    flex: 1 1 100%;
+    		max-width: 960px;
+		}
+		</style>
+
+	<div class="header--spacer l">&nbsp;</div>
+
+	<div class="header--inner">
+		<div class="header--branding">
+
+		<img src="/shared/img/Light%20Primary%20Dark.svg" style="height: 40px; width: 40px" />
+		<span class="header--branding--text">Save.gg</span>
+
+		</div>
+	</div>
+	<div class="header--user">
+		
+	</div>
+	<div class="header--spacer r">&nbsp;</div>
+</div>
+
+<div class="content dashboard">
+	<style>
+		.content {
+    		max-width: 960px;
+    		margin: 0 auto;
+    		margin-top: 25px;
+    		display: flex;
+    		/*flex-wrap: wrap;*/
+
+		}
+	</style>
+
+	<div class="box save--main">
+		
+		<h1>I Killed the Dargon</h1>
+		<ul>
+			<li title="Username" class="save--main--user"><img class="circle" src="/mockups/im/fire.png"> <span class="username">FlamingHotCheetos</span>
+			<li title="Game Name"><i class="fa fa-trophy"></i> The Elder Scrolls V: Skyrim
+			<li><i class="fa fa-clock-o"></i> Saved at Mar 31, 2016
+			<li><i class="fa fa-download"></i> Added 304 times.
+		</ul>
+
+	</div>
+
+
+	<div class="box save--thumb">
+		<img src="/mockups/im/skyrim.jpg">
+	</div>
+	<div class="box save--actions">
+		<button class="button-green"><i class="fa fa-plus"></i> Add to Collection</button>
+		<!-- <button class="button-alt-neutral"><i class="fa fa-minus"></i> Remove from Collection</button> -->
+		<!-- <button class="button-alt-blue"><i class="fa fa-pencil"></i> Edit Save</button> -->
+		<!-- <button class="button-alt-red"><i class="fa fa-trash"></i> Delete Save</button> -->
+		<button class="button-neutral"><i class="fa fa-shield"></i> Admin</button>
+		<button class="button-alt-orange"><i class="fa fa-exclamation-triangle"></i> Report</button>
+	</div>
+
+	<div class="box save--desc">
+			
+		<p>Normally, both your asses would be dead as fucking fried chicken, but you happen to pull this shit while I'm in a transitional period so I don't wanna kill you, I wanna help you. But I can't give you this case, it don't belong to me. Besides, I've already been through too much shit this morning over this case to hand it over to your dumb ass. </p>
+	</div>
+
+	<div class="box save--comments">
+		<style>
+			.comment {
+				display: flex;
+				/*flex-direction: column;*/
+				/*flex-wrap: wrap;*/
+			}
+
+			.comment--avatar {
+				flex: 0;
+			}
+
+			.comment--box {
+				flex: 1;
+				padding: 10px;
+				padding-top: 20px;
+				overflow: hidden;
+			}
+
+			.comment--avatar img {
+				width: 60px;
+				height: 100%;
+			}
+
+			.comment--username {
+				font-weight: bold;
+				font-size: 1.1em;
+			}
+		</style>
+		
+		<div class="comment">
+			
+			<div class="comment--avatar">
+				<img class="circle" src="/mockups/im/leaf2.jpg">
+			</div>
+
+			<div class="comment--box">
+				<div class="comment--username">Leaf&nbsp;&nbsp;<i class="fa fa-shield"></i></div>
+
+				<div class="comment--content">
+					<p>Don't you dare look back, keep your eyes on me.</p>
+					<p>I said she's holding back, she said "Shut up and dance with me!"~</p>
+				</div>
+			</div>
+
+
+		</div>
+
+		<div class="comment">
+			
+			<div class="comment--avatar">
+				<img class="circle" src="/mockups/im/fire.png">
+			</div>
+
+			<div class="comment--box">
+				<div class="comment--username">FlamingHotCheetos</div>
+
+				<div class="comment--content">
+					<p>Yes.</p>
+				</div>
+			</div>
+
+
+		</div>
+
+		<div class="comments--editor">
+			<style>
+				.comments--editor {
+					display: flex;
+					flex-wrap: wrap;
+				}
+
+				.editor--avatar img {
+					height: 60px;
+					width: 60px;
+				}
+
+				.editor--avatar {
+					flex: 0;
+					margin-right: 10px;
+				}
+
+				.editor--input {
+					flex: 1 2;
+					font-size: 1rem;
+					font-family: inherit;
+					padding: 10px;
+					appearance: none;
+					border: 0;
+					border-bottom: 2px solid #393231;
+					margin: 2px;
+					transition: ease-in-out 0.5s box-shadow;
+				}
+
+				.editor--input:focus {
+					box-shadow: 0 0 3px #383231;
+				}
+
+				.editor--actions {
+					flex: 1 1 100%;
+					text-align: right;
+				}
+
+				.editor--actions div {
+					display: inline-block;
+					font-style: italic;
+					padding-right: 10px;
+				}
+			</style>
+			
+			<div class="editor--avatar">
+				<img class="circle" src="/mockups/im/leaf2.jpg">
+			</div>
+
+			<textarea class="editor--input" placeholder="Join the conversation!"></textarea>
+			
+
+			<div class="editor--actions">
+				<div class="editor--info">
+					<div class="editor--info--admin">
+						<input type="checkbox"> Speak officially
+					</div>
+					<div class="editor--info--count">0/1000</div>
+				</div>
+				<button class="button-green">Send <i class="fa fa-send"></i></button>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+</div>
