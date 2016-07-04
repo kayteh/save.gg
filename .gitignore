@@ -6,3 +6,4 @@ client/node_modules/
 sgg-api
 sgg-worker
 sgg-tools
+cmd/sgg-api/run/api/api.generated.go
