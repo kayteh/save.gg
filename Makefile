@@ -9,11 +9,11 @@ BUILD_DATE := $(shell date +%FT%T%z)
 
 # CI Helpers
 #DOCKER_COMPOSE = docker-compose -f docker/compose-ci.yml
-DOCKER_COMPOSE_DEV = docker-compose
+DOCKER_COMPOSE_DEV ?= docker-compose
 
 LDFLAGS = -ldflags "-X ${SGG}/meta.Ref=${HASH} -X ${SGG}/meta.BuildDate=${BUILD_DATE}"
 
-.PHONY: test install clean gen dev-up migrate dev-setup deps
+.PHONY: test install clean gen dev-up migrate dev-setup deps dev-reset
 
 default: build
 build: gen buildall
@@ -39,7 +39,7 @@ sgg-worker: ${SOURCES}
 dev: dev-up build
 
 dev-up:
-	$DOCKER_COMPOSE_DEV up -d
+	${DOCKER_COMPOSE_DEV} up -d
 
 dev-setup: deps sgg-tools migrate
 dev-setup:
@@ -66,6 +66,9 @@ test:
 
 install:
 	${GO} install ${LDFLAGS} -v cmd/...
+
+get-govendor: ${GOPATH}/bin/govendor
+	${GO} get -u github.com/kardianos/govendor
 
 clean:
 	rm sgg-api sgg-worker sgg-tools
