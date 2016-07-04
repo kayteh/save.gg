@@ -177,7 +177,7 @@ func CA(fn httprouter.Handle) httprouter.Handle {
 	return SecurityCheck(fn, &SecurityFlags{All: true})
 }
 
-// Shorthane for internal routes.
+// Shorthand for internal routes.
 func I(fn httprouter.Handle) httprouter.Handle {
 	return SecurityCheck(fn, &SecurityFlags{Internal: true})
 }
