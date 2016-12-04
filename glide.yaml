@@ -1,0 +1,38 @@
+package: save.gg/sgg
+import:
+- package: github.com/BurntSushi/toml
+  version: ^0.2.0
+- package: github.com/Sirupsen/logrus
+  version: ^0.11.0
+- package: github.com/codegangsta/cli
+  version: ^1.19.1
+- package: github.com/influxdata/influxdb
+  version: ^1.1.0
+  subpackages:
+  - client/v2
+- package: github.com/jmoiron/sqlx
+- package: github.com/julienschmidt/httprouter
+  version: ^1.1.0
+- package: github.com/lib/pq
+- package: github.com/mattes/migrate
+  version: ^1.2.0
+  subpackages:
+  - driver/postgres
+  - migrate
+- package: github.com/mediocregopher/radix.v2
+  subpackages:
+  - pool
+  - redis
+- package: github.com/nats-io/nats
+  version: ^1.2.2
+- package: github.com/satori/go.uuid
+  version: ^1.1.0
+- package: github.com/segmentio/go-prompt
+  version: ^1.2.0
+- package: golang.org/x/crypto
+  subpackages:
+  - bcrypt
+- package: gopkg.in/dancannon/gorethink.v2
+  version: ^2.2.2
+- package: gopkg.in/dgrijalva/jwt-go.v2
+  version: ^3.0.0

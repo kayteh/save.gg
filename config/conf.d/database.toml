@@ -4,8 +4,5 @@ url = "postgres://sgg:19216801@localhost:5432/sgg?sslmode=disable"
 [redis]
 addr = "localhost:6379"
 
-[rethink]
-addr = "localhost:28015"
-
 [influx]
 addr = "http://localhost:8086"

@@ -1,11 +1,7 @@
 # File Services
 
-Since we have to deal with files, lots of thought has to go into dealing with them.
+Since we have to deal with files, lots of thought has to go into dealing with them. The services are in layers, and are in different locations per usage.
 
-## Primary: "The Black Hole"
+## Ingress
 
-**System:** Infinit Storage
-
-This side is what we serve actual save packs with. Everything here is an XZipped file or tarball. For backing this, use the best tools for the job, and do not rely on one single service. If S3 and GCS are the best, use them. This system should be smart, and use local SSD caching wherever possible, especially for heavily-downloaded things.
-
-Replication factor should be 3.
+Ingress layer is a regional system that only is accessible to the current user. Ingress systems are awaiting processing and are not to be committed to any primary file storage medium like S3/GCS/B3. Things from here can be deleted.

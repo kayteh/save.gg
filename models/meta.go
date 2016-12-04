@@ -14,7 +14,7 @@ import (
 var (
 	db      *sqlx.DB
 	redis   *pool.Pool
-	rethink *r.Session
+	rethink *r.Session = nil 
 	influx  influxdb.Client
 )
 
@@ -22,7 +22,6 @@ var (
 type Connector struct {
 	Pq      *sqlx.DB
 	Redis   *pool.Pool
-	Rethink *r.Session
 	Influx  influxdb.Client
 }
 
@@ -30,7 +29,6 @@ type Connector struct {
 func PrepModels(c *Connector) {
 	db = c.Pq
 	redis = c.Redis
-	rethink = c.Rethink
 	influx = c.Influx
 	return
 }
@@ -47,10 +45,8 @@ func ConnectorFromApp(a *meta.Application) (*Connector, error) {
 		return nil, err
 	}
 
-	re, err := a.GetRethink()
-	if err != nil {
-		return nil, err
-	}
+	// Set tag alias to JSON for cleaner struct tagging
+	r.SetTags("gorethink", "json")
 
 	in, err := a.GetInflux()
 	if err != nil {
@@ -60,7 +56,6 @@ func ConnectorFromApp(a *meta.Application) (*Connector, error) {
 	return &Connector{
 		Pq:      pq,
 		Redis:   rd,
-		Rethink: re,
 		Influx:  in,
 	}, nil
 }

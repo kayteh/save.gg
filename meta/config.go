@@ -101,7 +101,6 @@ type Config struct {
 	NATS       natsConfig
 	Postgres   pgConfig
 	Redis      redisConfig
-	Rethink    rethinkConfig
 	Security   securityConfig
 	Self       selfConfig
 	Validation validationConfig
@@ -123,10 +122,6 @@ type pgConfig struct {
 }
 
 type redisConfig struct {
-	Addr string
-}
-
-type rethinkConfig struct {
 	Addr string
 }
 

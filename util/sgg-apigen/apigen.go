@@ -34,13 +34,14 @@ import (
 	"regexp"
 	"runtime"
 	"sync"
+	"strings"
 	"text/template"
 )
 
 var re = regexp.MustCompile(`// ([A-Z]+) ([/a-zA-Z:_0-9-~]+) ?(?:(v[0-9a-zA-Z]+) ?(default)?)?\n(?:// ([a-zA-Z0-9\(\)\ ]+)\n)?func ([a-zA-Z0-9]+)`)
 var middlewareRe = regexp.MustCompile(`([A-Za-z0-9]+)(?:\(([A-Za-z0-9]+[,\ ]?)+\))?`)
 
-const tmpl = `{{block "main" .}}package api
+const goTmpl = `{{block "main" .}}package api
 
 //
 // ATTENTION: This file is generated automagically.
@@ -138,12 +139,13 @@ func main() {
 
 	wg.Wait()
 
-	renderFile(cwd)
+	renderGoFile(cwd)
 
 }
 
 func walker(path string, info os.FileInfo, err error) error {
-	if filepath.Ext(path) != ".go" || filepath.Base(path) == "api.generated.go" {
+	if filepath.Ext(path) != ".go" || filepath.Base(path) == "api.generated.go" ||
+	(strings.HasPrefix(filepath.Base(path), "test_") && os.Getenv("TEST_ROUTES") != "1") {
 		log.Printf("%s skipped", path)
 		return nil
 	}
@@ -252,7 +254,7 @@ func parseMiddleware(in string) []middleware {
 	return mw
 }
 
-func renderFile(cwd string) {
+func renderGoFile(cwd string) {
 	defer func() {
 		r := recover()
 		if r != nil {
@@ -263,7 +265,7 @@ func renderFile(cwd string) {
 		}
 	}()
 
-	t := template.Must(template.New("tmpl").Parse(tmpl))
+	t := template.Must(template.New("goTmpl").Parse(goTmpl))
 
 	f, err := os.OpenFile(cwd+"/api.generated.go", os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	if err != nil {
@@ -280,6 +282,7 @@ func renderFile(cwd string) {
 
 	log.Print("Finished!")
 }
+
 
 func goFmt(p string) {
 	exec.Command("go", "fmt", p).Run()

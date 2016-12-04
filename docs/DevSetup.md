@@ -2,17 +2,17 @@
 
 ## Required packages
 
-- docker 1.11.1
+- docker 1.12
 
 - docker-compose
 
 - git
 
-- go 1.6
+- go 1.7
 
-- nvm (use node 5.10)
+- nvm (use node ^7.2)
 
-- gulp-cli
+- make
 
 
 ## Setting the stage...
@@ -27,19 +27,18 @@ git clone git@github.com:kayteh/save.gg sgg
 # Start the needed docker containers
 docker-compose up -d
 
-# Get govendor
-go get -u github.com/kardianos/govendor
+# Get glide
+curl -sSL https://glide.sh/get | sh
 
 # Get dependencies and build
-govendor sync
+
 
 # Build binaries (do this after every change~)
-go install -v ./... 
+make
 
 # Migrate
 sgg-tools migrate
 sgg-tools migrate influx
-sgg-tools migrate rethink
 
 # Create first user
 sgg-tools debug-user register -a

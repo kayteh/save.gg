@@ -1,0 +1,7 @@
+[ratelimiting]
+active = false
+
+    [ratelimiting.class_defaults]
+    unknown = 500
+    fast = 500
+    slow = 50

@@ -21,20 +21,6 @@ func init() {
 		}),
 	)
 
-	meta.RegisterRoute("GET", "/~t/valid", secCheck)
-
-	meta.RegisterRoute("GET", "/~t/versioned",
-		mw.VR(mw.VRMap{
-			"default": versioned,
-
-			"v1": versionedV1,
-
-			"v1a": versionedV1a,
-
-			"v2": versioned,
-		}),
-	)
-
 	meta.RegisterRoute("PATCH", "/api/user/:slug",
 		mw.VR(mw.VRMap{
 			"default": mw.RequireSession(patchUser,

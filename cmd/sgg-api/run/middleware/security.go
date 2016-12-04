@@ -32,9 +32,6 @@ type SecurityFlags struct {
 	// Enforcement mode. Set to true if you don't care if the endpoint is validated,
 	// but still might want, for instance, a signature.
 	NoEnforce bool
-
-	// Ratelimit to enforce
-	RateLimit int
 }
 
 // Resolves aliases such as SecurityFlags.All.

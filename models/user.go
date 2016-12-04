@@ -153,7 +153,7 @@ func userCachedBySlug(userPtr *User, slug string) (ok bool, err error) {
 
 	r := redis.Cmd("GET", "user:"+slug)
 	if r.Err != nil {
-		return false, err
+		return false, r.Err
 	}
 
 	if r.IsType(radix.Nil) {

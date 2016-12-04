@@ -1,5 +1,5 @@
 [webserver]
-addr = "127.0.0.1:3052"
+addr = "0.0.0.0:3052"
 
     [webserver.tls]
     cert = "./config/ssl/dev.crt"

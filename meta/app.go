@@ -21,7 +21,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	redis "github.com/mediocregopher/radix.v2/pool"
-	r "gopkg.in/dancannon/gorethink.v2"
 )
 
 // Structure for core app data like configuration, a logger, and anything pertinent to any part of the app.
@@ -30,7 +29,6 @@ type Application struct {
 	Conf    Config
 	Log     *log.Entry
 	Influx  influx.Client
-	Rethink *r.Session
 	Redis   *redis.Pool
 
 	Env string
@@ -74,18 +72,6 @@ func (a Application) GetInflux() (i influx.Client, err error) {
 	})
 
 	return i, err
-}
-
-// Returns a RethinkDB session. This is goroutine-safe.
-func (a Application) GetRethink() (*r.Session, error) {
-	var s *r.Session
-	var err error
-
-	s, err = r.Connect(r.ConnectOpts{
-		Address: a.Conf.Rethink.Addr,
-	})
-
-	return s, err
 }
 
 // Returns a Redis session. This is goroutine-safe.
