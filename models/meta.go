@@ -7,14 +7,12 @@ import (
 	influxdb "github.com/influxdata/influxdb/client/v2"
 	"github.com/jmoiron/sqlx"
 	"github.com/mediocregopher/radix.v2/pool"
-	r "gopkg.in/dancannon/gorethink.v2"
 	"save.gg/sgg/meta"
 )
 
 var (
 	db      *sqlx.DB
 	redis   *pool.Pool
-	rethink *r.Session = nil 
 	influx  influxdb.Client
 )
 
@@ -44,9 +42,6 @@ func ConnectorFromApp(a *meta.Application) (*Connector, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Set tag alias to JSON for cleaner struct tagging
-	r.SetTags("gorethink", "json")
 
 	in, err := a.GetInflux()
 	if err != nil {
