@@ -77,7 +77,9 @@ func TestCascadingConfiguration(t *testing.T) {
 	def := `
 [self]
 env = "test"
-signing_key = "1234567890abcdefghijklmnopqrstuvwxyz"
+
+[security.signing_keys]
+CSRF = "1234567890abcdefghijklmnopqrstuvwxyz"
 `
 
 	writeToml(tmpDir+"/app.toml", def)
@@ -96,7 +98,7 @@ env = "test-00"
 		t.Fail()
 	}
 
-	if c.Self.SigningKey != "1234567890abcdefghijklmnopqrstuvwxyz" {
+	if c.Security.SigningKeys.CSRF != "1234567890abcdefghijklmnopqrstuvwxyz" {
 		log.Error("configuration overwrote without superceding")
 		t.Fail()
 	}
