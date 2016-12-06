@@ -41,56 +41,6 @@ import (
 var re = regexp.MustCompile(`// ([A-Z]+) ([/a-zA-Z:_0-9-~]+) ?(?:(v[0-9a-zA-Z]+) ?(default)?)?\n(?:// ([a-zA-Z0-9\(\)\ ]+)\n)?func ([a-zA-Z0-9]+)`)
 var middlewareRe = regexp.MustCompile(`([A-Za-z0-9]+)(?:\(([A-Za-z0-9]+[,\ ]?)+\))?`)
 
-const goTmpl = `{{block "main" .}}package api
-
-//
-// ATTENTION: This file is generated automagically.
-// Do not touch it. Do not pass go. Do not collect $200.
-// Instead run 'go generate' or 'make gen' to build this file.
-//
-
-import (
-	mw "save.gg/sgg/cmd/sgg-api/run/middleware"
-	"save.gg/sgg/meta"
-)
-
-func init() {
-	{{range .}}
-		meta.RegisterRoute("{{.Verb}}", "{{.URI}}", 
-		{{- if .Versioned}}
-			{{- template "versionedRoute" .}}
-		{{else}}
-			{{- template "regularRoute" .Versions.default}}
-		{{end}})
-	{{else}}
-	// no routes
-	{{end}}
-}
-{{end}}
-
-{{block "regularRoute" .}}
-
-	{{- range .Middleware}}mw.{{.Name}}({{end}}{{.FuncName}},
-{{- range .Middleware}}
-	{{- if .HasFlags}}
-	&mw.SecurityFlags{
-		{{- range .SecFlags}}
-			{{.}}: true,
-		{{end}}
-	}{{end}}),
-{{end}}
-
-{{end}}
-
-{{block "versionedRoute" .}}
-	mw.VR(mw.VRMap{
-		{{- range $k, $r := .Versions}}
-		"{{$k}}": {{- template "regularRoute" $r}}
-		{{end}}
-	}),
-{{end}}
-`
-
 type route struct {
 	Verb      string
 	URI       string
@@ -117,6 +67,13 @@ var l sync.Mutex
 var wg sync.WaitGroup
 
 func main() {
+
+	_, caller, _, _ := runtime.Caller(0)
+	apigenDir, err := filepath.Abs(filepath.Dir(caller))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if len(os.Args) == 2 {
 		os.Chdir(os.Args[1])
 	}
@@ -139,7 +96,8 @@ func main() {
 
 	wg.Wait()
 
-	renderGoFile(cwd)
+	renderGoFile(apigenDir+"/api.go.tmpl", cwd)
+	renderJSFile(apigenDir+"/api.js.tmpl", cwd)
 
 }
 
@@ -254,7 +212,7 @@ func parseMiddleware(in string) []middleware {
 	return mw
 }
 
-func renderGoFile(cwd string) {
+func renderGoFile(tmplPath, cwd string) {
 	defer func() {
 		r := recover()
 		if r != nil {
@@ -265,7 +223,7 @@ func renderGoFile(cwd string) {
 		}
 	}()
 
-	t := template.Must(template.New("goTmpl").Parse(goTmpl))
+	t := template.Must(template.ParseFiles(tmplPath))
 
 	f, err := os.OpenFile(cwd+"/api.generated.go", os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	if err != nil {
@@ -280,7 +238,41 @@ func renderGoFile(cwd string) {
 
 	goFmt(cwd + "/api.generated.go")
 
-	log.Print("Finished!")
+	log.Print("Go done.")
+}
+
+func renderJSFile(tmplPath, cwd string) {
+	defer func() {
+		r := recover()
+		if r != nil {
+			if _, ok := r.(runtime.Error); ok {
+				panic(r)
+			}
+			log.Println("[ERR]", r)
+		}
+	}()
+
+	t := template.Must(template.ParseFiles(tmplPath))
+
+	path, err := filepath.Abs(cwd+"/../../../../client/lib/sgg-api/")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	f, err := os.OpenFile(path+"/api.generated.js", os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+	if err != nil {
+		log.Fatalf("[ERR] couldn't write to output file: %s", err)
+	}
+	defer f.Close()
+
+	err = t.ExecuteTemplate(f, "main", routes)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	goFmt(cwd + "/api.generated.go")
+
+	log.Print("JS Done.")
 }
 
 

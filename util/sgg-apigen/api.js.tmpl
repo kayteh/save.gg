@@ -1,0 +1,118 @@
+{{block "main" .}}
+//
+// ATTENTION: This file is generated automagically.
+// Do not touch it. Do not pass go. Do not collect $200.
+// Instead run 'go generate' or 'make gen' to build this file.
+//
+
+const superagent = require('superagent')
+
+let isNode = false
+
+if (typeof module !== 'undefined' && module.exports) {
+    isNode = true
+}
+
+function injectCSRF(req) {
+    if (!isNode) {
+        try {
+            let token = document.querySelector('meta[sgg-csrf]').getAttribute('token')
+            req.set("SGG-CSRF-Token", token)
+        } catch(e) {
+            console.warn('[WARN] CSRF <meta> tag missing', e)
+        }
+    }
+}
+
+function singleRoute({verb, uri}) {
+
+    // Returns a function with the signature:
+    // function ({data...}, function(superagent#Request))
+    // -- The extra function is optional and is for anything special to be added
+    return (function (obj, fn = null) {
+        
+        let finalUri = uri
+
+
+        let named = uri.match(/\:[a-zA-Z0-9]+/g)
+        if (named === null) {
+            named = []
+        }
+
+        // Replace named stuff
+        named.forEach((i) => {
+            i = i.slice(1)
+            if (obj[i] !== undefined) {
+                // replace it, then remove it
+                finalUri = finalUri.replace(`:${i}`, obj[i])
+                delete obj[i]
+
+
+            } else {
+                throw new Error(`This endpoint requires ${i} to be set in the input argument.`)
+                return false
+            }
+        })
+
+        if (isNode) {
+            finalUri = process.env.SGG_API_ENDPOINT + finalUri
+        }
+
+        // make the request instance
+        let req = superagent[verb.toLowerCase()](finalUri)
+            .accept('application/vnd.svgg+json')
+        
+        if (verb.toLowerCase() === 'get') {
+            req.query(obj)
+        } else {
+            req.send(obj)
+        }
+        
+        // middleware-ish stuff
+        injectCSRF(req)
+        if (fn !== null) {
+            let retVal = fn(req)
+
+            if (retVal === false) {
+                console.log('extra function returned false, will not continue the request.')
+                return null
+            }
+        }
+
+        if (isNode) {
+            req.set('user-agent', 'save.gg/1.0 (node +generated)')
+        } else {
+            req.set('user-agent', navigator.userAgent + ' Save.gg/1.0 (+Generated)')
+        }
+
+        // return the promise
+        return req
+
+    })
+}
+
+function generateApi() {
+    let apiRoutes = [
+    {{range .}}
+        {
+            verb: "{{.Verb}}",
+            funcName: "{{.Versions.default.FuncName}}",
+            uri: "{{.URI}}"
+        },
+    {{end}}
+    ]
+
+    let apiObj = {}
+
+    apiRoutes.forEach((i) => {
+        apiObj[i.funcName] = singleRoute(i)
+    })
+
+    return apiObj
+    
+}
+
+
+module.exports = generateApi()
+
+{{end}}

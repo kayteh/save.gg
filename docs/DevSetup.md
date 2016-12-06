@@ -31,7 +31,7 @@ docker-compose up -d
 curl -sSL https://glide.sh/get | sh
 
 # Get dependencies and build
-
+glide install
 
 # Build binaries (do this after every change~)
 make
@@ -41,5 +41,5 @@ sgg-tools migrate
 sgg-tools migrate influx
 
 # Create first user
-sgg-tools debug-user register -a
+sgg-tools debug-user register -a -u testuser -p 123456789 -e testuser@svgg.xyz
 ```

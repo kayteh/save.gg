@@ -3,7 +3,6 @@ package debuguser
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
-	"github.com/segmentio/go-prompt"
 	"save.gg/sgg/cmd/sgg-tools/run"
 	m "save.gg/sgg/models"
 	"save.gg/sgg/util/errors"
@@ -12,11 +11,7 @@ import (
 func Login(ctx *cli.Context) {
 
 	handle := ctx.String("username")
-	if handle == "" {
-		handle = prompt.StringRequired("username/email")
-	}
-
-	password := prompt.PasswordMasked("password")
+	password := ctx.String("password")
 
 	toolsrun.SetupDB()
 

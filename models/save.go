@@ -22,12 +22,7 @@ type Save struct {
 	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 
 	FileEntityID string          `db:"file_entity_id" json:"-"`
-	FileEntity   *SaveFileEntity `json:"file_entity,omitempty"`
+	//FileEntity   *SaveFileEntity `json:"file_entity,omitempty"`
 
 	presentable bool
-}
-
-type SaveFileEntity struct {
-	FileEntity
-	SaveID string `json:"save_id"`
 }
